@@ -1,20 +1,32 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
-import drAnaSayfa from '../screens/drAnaSayfa';
-import drHastaGoruntule from '../screens/drHastaGoruntule';
-import drIlacEkle from '../screens/drIlacEkle';
-import drBilgiSayfa from '../screens/drBilgiSayfa';
+import DrIlacEkle from '../screens/drIlacEkle';
+import MediAi from '../screens/mediAi';
+import DrBilgiSayfa from '../screens/drBilgiSayfa';
+
+import CustomDoctorTabBar from './CustomDoctorTabBar';
+import DrHomeStack from './DrHomeStack';
 
 const Tab = createBottomTabNavigator();
 
-const DoktorTabs = () => {
+const DoktorTabs = ({ route }) => {
+  const doctor = route?.params?.doctor;
+
   return (
-    <Tab.Navigator screenOptions={{ headerShown: false }}>
-      <Tab.Screen name="drAnaSayfa" component={drAnaSayfa} />
-      <Tab.Screen name="drHastaGoruntule" component={drHastaGoruntule} />
-      <Tab.Screen name="drIlacEkle" component={drIlacEkle} />
-      <Tab.Screen name="drBilgiSayfa" component={drBilgiSayfa} />
+    <Tab.Navigator
+      screenOptions={{ headerShown: false }}
+      tabBar={(props) => <CustomDoctorTabBar {...props} />}
+    >
+      <Tab.Screen
+        name="DrHome"
+        component={DrHomeStack}
+        initialParams={{ doctor }}
+      />
+
+      <Tab.Screen name="drIlacEkle" component={DrIlacEkle} />
+      <Tab.Screen name="mediAi" component={MediAi} />
+      <Tab.Screen name="drBilgiSayfa" component={DrBilgiSayfa} />
     </Tab.Navigator>
   );
 };

@@ -10,7 +10,7 @@ const Acilis = ({ navigation }) => {
       navigation.replace('kullaniciSecim');
       // Eğer geri tuşuyla açılış ekranına dönülsün istersen:
       // navigation.navigate('kullaniciSecim');
-    }, 2000); // 2 saniye  
+    }, 10000); // 2 saniye  
 
     return () => clearTimeout(timer);
   }, [navigation]);
@@ -34,13 +34,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#1483C7',
-    justifyContent: 'center',
     alignItems: 'center',
+    paddingTop: '70%', // 👈 burayla oynayarak ince ayar yapabilirsin
   },
   logo: {
     width: 140,
     height: 140,
-    marginBottom: 25,
+    marginBottom: 12,
   },
   mediBox: {
     backgroundColor: 'white',
@@ -54,5 +54,6 @@ const styles = StyleSheet.create({
     color: '#1483C7',
   },
 });
+
 
 export default Acilis;
