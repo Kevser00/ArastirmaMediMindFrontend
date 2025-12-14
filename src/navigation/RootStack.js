@@ -13,7 +13,7 @@ import KayitHasta from '../screens/kayitHasta';
 import KayitDr from '../screens/kayitDr';
 import SifremiUnuttum from '../screens/sifremiUnuttum';
 
-// Sonraki aşama için (şimdilik sadece dursun)
+
 import HastaStack from './HastaStack';
 import DoktorStack from './DoktorStack';
 

@@ -14,7 +14,7 @@ import {
 
 import NavigationFooter from '../components/NavigationFooter';
 
-// ✅ Şimdilik mock login (sonra API ile değiştir)
+//  Şimdilik mock login (sonra API ile değiştir)
 const loginDoctor = async ({ sicilNo, sifre }) => {
   await new Promise((r) => setTimeout(r, 600));
   // örnek dönüş
@@ -80,7 +80,7 @@ const GirisDr = ({ navigation }) => {
         sifre,
       });
 
-      // ✅ doctor bilgisini DoktorTabs’e taşı
+      //  doctor bilgisini DoktorTabs’e taşı
       navigation.replace('DoktorStack', {
         screen: 'DoktorTabs',
         params: { doctor }, // <-- drAnaSayfa bunu kullanacak

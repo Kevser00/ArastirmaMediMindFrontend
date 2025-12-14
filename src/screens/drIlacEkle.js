@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 const DrIlacEkle = () => {
   return (
     <SafeAreaView style={styles.safe}>
-      {/* HEADER (Figma gibi: sol logo - ortada başlık - sağ zil) */}
+      {/* HEADER  */}
       <View style={styles.header}>
         <View style={styles.headerSide}>
           <Image
@@ -31,7 +31,7 @@ const DrIlacEkle = () => {
         </View>
       </View>
 
-      {/* ÜSTTEKİ ARAMA (Figma’daki küçük arama) */}
+      {/* ÜSTTEKİ ARAMA */}
       <View style={styles.topSearchWrap}>
         <View style={styles.topSearchBox}>
           <Ionicons name="search-outline" size={18} color="#666" />
@@ -53,7 +53,7 @@ const DrIlacEkle = () => {
           <Label title="Hasta ID No" />
           <Input placeholder="Hasta ID giriniz" />
 
-          {/* ✅ “Hasta Bilgileri” KISMI YOK */}
+          {}
 
           <Label title="İlaç Adı" />
           <Input placeholder="İlaç adı" />
@@ -95,7 +95,7 @@ const DrIlacEkle = () => {
   );
 };
 
-/* 🔹 KÜÇÜK COMPONENTLER */
+/*  KÜÇÜK COMPONENTLER */
 const Label = ({ title }) => <Text style={styles.label}>{title}</Text>;
 
 const Input = ({ style, ...props }) => (
@@ -108,7 +108,7 @@ const Input = ({ style, ...props }) => (
 
 export default DrIlacEkle;
 
-/* 🎨 STYLES */
+/*  STYLES */
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-  /* TOP SEARCH (Figma’daki küçük gri arama) */
+  /* TOP SEARCH  */
   topSearchWrap: {
     paddingHorizontal: 16,
     marginTop: 10,

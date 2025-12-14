@@ -71,8 +71,8 @@ const DrHastaGoruntule = ({ route }) => {
           ))}
         </View>
 
-        {/* ✅ Yeşil +İlaç ekle yok */}
-        {/* ✅ Alttaki siyah bilgi yazısı yok */}
+        {}
+        {}
       </ScrollView>
     </SafeAreaView>
   );

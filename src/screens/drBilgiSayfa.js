@@ -13,7 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 const DrBilgiSayfa = ({ navigation, route }) => {
   const doctorParam = route?.params?.doctor;
 
-  // ✅ API'den gelecek yapıya hazır
+  // API'den gelecek yapı
   const [profile, setProfile] = useState({
     fullName: '',
     title: '',
@@ -22,7 +22,7 @@ const DrBilgiSayfa = ({ navigation, route }) => {
   });
 
   useEffect(() => {
-    // 🔸 Şimdilik mock – sonra API’den dolduracaksın
+    //  Şimdilik mock – sonra API’den 
     const name = doctorParam?.name ?? '';
     setProfile({
       fullName: name,
@@ -57,7 +57,7 @@ const DrBilgiSayfa = ({ navigation, route }) => {
 
       {/* CONTENT */}
       <View style={styles.content}>
-        {/* ✅ BİLGİ KARTI */}
+        {/* BİLGİ KARTI */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Doktor Bilgileri</Text>
 
@@ -74,7 +74,7 @@ const DrBilgiSayfa = ({ navigation, route }) => {
         </View>
       </View>
 
-      {/* ✅ ESKİ STİL ÇIKIŞ */}
+      {/* ESKİ STİL ÇIKIŞ */}
       <View style={styles.bottomArea}>
         <TouchableOpacity
           activeOpacity={0.85}
@@ -91,7 +91,7 @@ const DrBilgiSayfa = ({ navigation, route }) => {
 
 export default DrBilgiSayfa;
 
-/* 🔹 Bilgi satırı */
+/*  Bilgi satırı */
 const InfoRow = ({ label, value }) => {
   return (
     <View style={styles.row}>
@@ -105,11 +105,11 @@ const InfoRow = ({ label, value }) => {
 
 const Divider = () => <View style={styles.divider} />;
 
-/* 🎨 STYLES */
+/* 🎨STYLES */
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#F6F8FB', // ✅ kart hissi için hafif gri zemin
+    backgroundColor: '#F6F8FB', // 
   },
 
   /* HEADER */

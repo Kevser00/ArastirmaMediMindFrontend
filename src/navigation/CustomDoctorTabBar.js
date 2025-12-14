@@ -7,10 +7,8 @@ const CustomDoctorTabBar = ({ state, navigation }) => {
   const insets = useSafeAreaInsets();
   const active = state.routes[state.index]?.name;
 
-  // ✅ GÜNCELLENDİ
   const go = (name) => {
     if (name === 'DrHome') {
-      // DrHome tab'ına git + iç stack'te drAnaSayfa'yı aç
       navigation.navigate('DrHome', { screen: 'drAnaSayfa' });
       return;
     }
@@ -37,7 +35,7 @@ const CustomDoctorTabBar = ({ state, navigation }) => {
   return (
     <View style={[styles.wrap, { paddingBottom: Math.max(insets.bottom, 10) }]}>
       <View style={styles.bar}>
-        {/* ✅ Ana Sayfa (TAB ADI DrHome) */}
+        {}
         <TabItem name="DrHome" label="Ana Sayfa">
           {(isActive) => (
             <Image

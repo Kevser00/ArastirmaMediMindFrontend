@@ -15,7 +15,7 @@ const DoktorStack = () => {
       <Stack.Screen name="kayitDr" component={KayitDr} />
       <Stack.Screen name="sifremiUnuttum" component={SifremiUnuttum} />
 
-      {/* ✅ Tabbar'lı alan burası */}
+      {}
       <Stack.Screen name="DoktorTabs" component={DoktorTabs} />
     </Stack.Navigator>
   );
