@@ -1,4 +1,3 @@
-// src/screens/girisHasta.js
 import React, { useMemo, useState } from 'react';
 import {
   View,
@@ -7,26 +6,34 @@ import {
   Image,
   TextInput,
   TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
   ActivityIndicator,
   Alert,
 } from 'react-native';
 
 import NavigationFooter from '../components/NavigationFooter';
-import { authService } from '../api/authService';
+import { useAuth } from '../context/AuthContext';
 
 const GirisHasta = ({ navigation }) => {
+  const { login } = useAuth();
+
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [sifre, setSifre] = useState('');
 
   const [emailTouched, setEmailTouched] = useState(false);
-  const [passwordTouched, setPasswordTouched] = useState(false);
+  const [sifreTouched, setSifreTouched] = useState(false);
+
   const [loading, setLoading] = useState(false);
 
   const isValidEmail = (val) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(val.trim());
 
+  // Doktor ekranındakiyle aynı güçlü şifre kuralı
   const isStrongPassword = (val) =>
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_\-+={}[\]|\\:;"'<>,.?/~`]).{8,}$/.test(val);
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_\-+={}[\]|\\:;"'<>,.?/~]).{8,}$/.test(
+      val
+    );
 
   const emailError = useMemo(() => {
     if (!emailTouched) return '';
@@ -35,55 +42,48 @@ const GirisHasta = ({ navigation }) => {
     return '';
   }, [email, emailTouched]);
 
-  const passwordError = useMemo(() => {
-    if (!passwordTouched) return '';
-    if (!password) return 'Şifre boş bırakılamaz.';
-    if (!isStrongPassword(password))
+  const sifreError = useMemo(() => {
+    if (!sifreTouched) return '';
+    if (!sifre) return 'Şifre boş bırakılamaz.';
+    if (!isStrongPassword(sifre))
       return 'Şifre en az 8 karakter, 1 büyük, 1 küçük ve 1 özel karakter içermelidir.';
     return '';
-  }, [password, passwordTouched]);
+  }, [sifre, sifreTouched]);
 
   const isFormValid = useMemo(
-    () => isValidEmail(email) && isStrongPassword(password),
-    [email, password]
+    () => isValidEmail(email) && isStrongPassword(sifre),
+    [email, sifre]
   );
 
   const handleLogin = async () => {
     setEmailTouched(true);
-    setPasswordTouched(true);
+    setSifreTouched(true);
+
     if (!isFormValid) return;
 
     try {
       setLoading(true);
 
-      const { data } = await authService.loginUser({
-        email: email.trim(),
-        password,
-      });
+      // AuthContext login senkron (true/false) dönüyor
+      const success = login(email.trim(), sifre);
 
-      const user = {
-        email: email.trim(),
-        ...(data?.user || {}),
-      };
+      if (!success) {
+        Alert.alert('Hata', 'E-posta veya şifre hatalı');
+        return;
+      }
 
-      // Senin navigasyon yapına göre burayı uyarlarsın:
-      // örn: navigation.replace('HastaStack', { screen: 'HastaTabs', params: { user } });
-      Alert.alert('Başarılı', 'Giriş yapıldı.');
-      // navigation.navigate('hastaAnaSayfa');
-    } catch (err) {
-      const msg =
-        err?.response?.data?.message ||
-        err?.response?.data?.error ||
-        err?.message ||
-        'Giriş başarısız.';
-      Alert.alert('Hata', msg);
+      // ✅ Başarılıysa hasta tarafına geç (route isimlerin farklıysa söyle)
+      navigation.replace('HastaStack', { screen: 'HastaTabs' });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
       <Image
         source={require('../../assets/medilogo.png')}
         style={styles.logo}
@@ -108,6 +108,7 @@ const GirisHasta = ({ navigation }) => {
           onBlur={() => setEmailTouched(true)}
           keyboardType="email-address"
           autoCapitalize="none"
+          autoCorrect={false}
         />
 
         {emailTouched && emailError ? (
@@ -122,20 +123,20 @@ const GirisHasta = ({ navigation }) => {
           secureTextEntry
           style={[
             styles.input,
-            passwordTouched && passwordError ? styles.inputError : null,
+            sifreTouched && sifreError ? styles.inputError : null,
           ]}
-          value={password}
+          value={sifre}
           onChangeText={(t) => {
-            setPassword(t);
-            if (!passwordTouched) setPasswordTouched(true);
+            setSifre(t);
+            if (!sifreTouched) setSifreTouched(true);
           }}
-          onBlur={() => setPasswordTouched(true)}
+          onBlur={() => setSifreTouched(true)}
           autoCapitalize="none"
         />
 
-        {passwordTouched && passwordError ? (
+        {sifreTouched && sifreError ? (
           <View style={styles.errorBox}>
-            <Text style={styles.errorText}>{passwordError}</Text>
+            <Text style={styles.errorText}>{sifreError}</Text>
           </View>
         ) : null}
 
@@ -150,27 +151,49 @@ const GirisHasta = ({ navigation }) => {
           onPress={() => navigation.navigate('sifremiUnuttum')}
           activeOpacity={0.7}
         >
-          <Text style={styles.sifreUnuttumText}>Şifremi unuttum</Text>
+          <Text style={styles.sifreunuttumText}>Şifremi unuttum</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.button, (!isFormValid || loading) && styles.buttonDisabled]}
+          style={[
+            styles.button,
+            (!isFormValid || loading) && styles.buttonDisabled,
+          ]}
           onPress={handleLogin}
+          activeOpacity={0.8}
           disabled={!isFormValid || loading}
         >
-          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Giriş Yap</Text>}
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>Giriş Yap</Text>
+          )}
         </TouchableOpacity>
       </View>
 
       <NavigationFooter onBack={() => navigation.navigate('kullaniciSecim')} />
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#1483C7', alignItems: 'center' },
-  logo: { width: 80, height: 80, marginTop: 60, marginBottom: 20 },
-  title: { fontSize: 24, fontWeight: '600', color: 'white', marginBottom: 20 },
+  container: {
+    flex: 1,
+    backgroundColor: '#1483C7',
+    alignItems: 'center',
+  },
+  logo: {
+    width: 80,
+    height: 80,
+    marginTop: 60,
+    marginBottom: 20,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: 'white',
+    marginBottom: 20,
+  },
   box: {
     marginTop: 10,
     width: '80%',
@@ -191,7 +214,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'transparent',
   },
-  inputError: { borderColor: '#E53935' },
+  inputError: {
+    borderColor: '#E53935',
+  },
   errorBox: {
     backgroundColor: '#FDECEA',
     borderColor: '#E53935',
@@ -200,17 +225,35 @@ const styles = StyleSheet.create({
     padding: 8,
     marginBottom: 10,
   },
-  errorText: { color: '#E53935', fontSize: 12, textAlign: 'center' },
-  kaydolText: { color: '#1642BB', fontSize: 13, marginBottom: 5 },
-  sifreUnuttumText: { color: '#1642BB', fontSize: 13, marginBottom: 20 },
+  errorText: {
+    color: '#E53935',
+    fontSize: 12,
+    textAlign: 'center',
+  },
+  kaydolText: {
+    color: '#1642BB',
+    fontSize: 13,
+    marginBottom: 5,
+  },
+  sifreunuttumText: {
+    color: '#1642BB',
+    fontSize: 13,
+    marginBottom: 20,
+  },
   button: {
     backgroundColor: '#1642BB',
     paddingVertical: 12,
     borderRadius: 25,
     alignItems: 'center',
   },
-  buttonDisabled: { opacity: 0.6 },
-  buttonText: { color: 'white', fontSize: 17, fontWeight: '600' },
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 17,
+    fontWeight: '600',
+  },
 });
 
 export default GirisHasta;

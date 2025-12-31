@@ -6,11 +6,15 @@ import {
   Image,
   TextInput,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 
 import NavigationFooter from '../components/NavigationFooter';
+import { useAuth } from '../context/AuthContext';
 
 const KayitHasta = ({ navigation }) => {
+  const { register } = useAuth();
+
   const [ad, setAd] = useState('');
   const [soyad, setSoyad] = useState('');
   const [email, setEmail] = useState('');
@@ -85,7 +89,21 @@ const KayitHasta = ({ navigation }) => {
 
     if (!isFormValid) return;
 
-    // ✅ Kayıt başarılı → Hasta giriş ekranına dön
+    const newUser = {
+      ad: ad.trim(),
+      soyad: soyad.trim(),
+      email: email.trim().toLowerCase(),
+      sifre, // ✅ AuthContext login u.sifre ile kontrol ediyor
+    };
+
+    const ok = register(newUser);
+
+    if (!ok) {
+      Alert.alert('Hata', 'Bu e-posta ile zaten kayıt olunmuş.');
+      return;
+    }
+
+    Alert.alert('Başarılı', 'Kayıt oluşturuldu. Giriş yapabilirsiniz.');
     navigation.replace('girisHasta');
   };
 
@@ -142,6 +160,7 @@ const KayitHasta = ({ navigation }) => {
           placeholderTextColor="#888"
           keyboardType="email-address"
           autoCapitalize="none"
+          autoCorrect={false}
           style={[
             styles.input,
             emailTouched && emailError ? styles.inputError : null,
@@ -207,6 +226,7 @@ const KayitHasta = ({ navigation }) => {
           style={[styles.button, !isFormValid && styles.buttonDisabled]}
           onPress={handleRegister}
           activeOpacity={0.8}
+          disabled={!isFormValid}
         >
           <Text style={styles.buttonText}>Kayıt Ol</Text>
         </TouchableOpacity>

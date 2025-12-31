@@ -1,9 +1,10 @@
+
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 import hastaAnaSayfa from '../screens/hastaAnaSayfa';
 import hastaBildirimSayfa from '../screens/hastaBildirimSayfa';
-import mediAl from '../screens/mediAi';
+import mediAi from '../screens/mediAi';
 import hastaBilgiSayfa from '../screens/hastaBilgiSayfa';
 
 const Tab = createBottomTabNavigator();

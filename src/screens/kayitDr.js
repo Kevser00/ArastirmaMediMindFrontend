@@ -32,7 +32,7 @@ const KayitDr = ({ navigation }) => {
   };
 
   const isStrongPassword = (val) =>
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_\-+={}[\]|\\:;"'<>,.?/~`]).{8,}$/.test(
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_\-+={}[\]|\\:;"'<>,.?/~]).{8,}$/.test(
       val
     );
 
@@ -51,8 +51,10 @@ const KayitDr = ({ navigation }) => {
   const sicilError = useMemo(() => {
     if (!sicilTouched) return '';
     if (!sicilNo.trim()) return 'Sicil no boş bırakılamaz.';
-    if (!/^\d+$/.test(sicilNo.trim())) return 'Sicil no sadece rakam olmalı.';
-    if (sicilNo.trim().length < 5) return 'Sicil no en az 5 haneli olmalı.';
+    if (!/^\d+$/.test(sicilNo.trim()))
+      return 'Sicil no sadece rakam olmalı.';
+    if (sicilNo.trim().length < 5)
+      return 'Sicil no en az 5 haneli olmalı.';
     return '';
   }, [sicilNo, sicilTouched]);
 
@@ -109,7 +111,10 @@ const KayitDr = ({ navigation }) => {
         <TextInput
           placeholder="Ad"
           placeholderTextColor="#888"
-          style={[styles.input, adTouched && adError ? styles.inputError : null]}
+          style={[
+            styles.input,
+            adTouched && adError ? styles.inputError : null,
+          ]}
           value={ad}
           onChangeText={(t) => {
             setAd(t);
@@ -117,6 +122,7 @@ const KayitDr = ({ navigation }) => {
           }}
           onBlur={() => setAdTouched(true)}
         />
+
         {adTouched && adError ? (
           <View style={styles.errorBox}>
             <Text style={styles.errorText}>{adError}</Text>
@@ -137,6 +143,7 @@ const KayitDr = ({ navigation }) => {
           }}
           onBlur={() => setSoyadTouched(true)}
         />
+
         {soyadTouched && soyadError ? (
           <View style={styles.errorBox}>
             <Text style={styles.errorText}>{soyadError}</Text>
@@ -159,6 +166,7 @@ const KayitDr = ({ navigation }) => {
           onBlur={() => setSicilTouched(true)}
           keyboardType="number-pad"
         />
+
         {sicilTouched && sicilError ? (
           <View style={styles.errorBox}>
             <Text style={styles.errorText}>{sicilError}</Text>
@@ -181,6 +189,7 @@ const KayitDr = ({ navigation }) => {
           }}
           onBlur={() => setSifreTouched(true)}
         />
+
         {sifreTouched && sifreError ? (
           <View style={styles.errorBox}>
             <Text style={styles.errorText}>{sifreError}</Text>
@@ -194,23 +203,32 @@ const KayitDr = ({ navigation }) => {
           autoCapitalize="none"
           style={[
             styles.input,
-            sifreTekrarTouched && sifreTekrarError ? styles.inputError : null,
+            sifreTekrarTouched && sifreTekrarError
+              ? styles.inputError
+              : null,
           ]}
           value={sifreTekrar}
           onChangeText={(t) => {
             setSifreTekrar(t);
-            if (!sifreTekrarTouched) setSifreTekrarTouched(true);
+            if (!sifreTekrarTouched)
+              setSifreTekrarTouched(true);
           }}
           onBlur={() => setSifreTekrarTouched(true)}
         />
+
         {sifreTekrarTouched && sifreTekrarError ? (
           <View style={styles.errorBox}>
-            <Text style={styles.errorText}>{sifreTekrarError}</Text>
+            <Text style={styles.errorText}>
+              {sifreTekrarError}
+            </Text>
           </View>
         ) : null}
 
         <TouchableOpacity
-          style={[styles.button, !isFormValid && styles.buttonDisabled]}
+          style={[
+            styles.button,
+            !isFormValid && styles.buttonDisabled,
+          ]}
           onPress={handleRegister}
           activeOpacity={0.8}
         >
@@ -224,9 +242,23 @@ const KayitDr = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#1483C7', alignItems: 'center' },
-  logo: { width: 80, height: 80, marginTop: 60, marginBottom: 20 },
-  title: { fontSize: 24, fontWeight: '600', color: 'white', marginBottom: 20 },
+  container: {
+    flex: 1,
+    backgroundColor: '#1483C7',
+    alignItems: 'center',
+  },
+  logo: {
+    width: 80,
+    height: 80,
+    marginTop: 60,
+    marginBottom: 20,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: 'white',
+    marginBottom: 20,
+  },
   box: {
     marginTop: 10,
     width: '80%',
@@ -247,7 +279,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'transparent',
   },
-  inputError: { borderColor: '#E53935' },
+  inputError: {
+    borderColor: '#E53935',
+  },
   errorBox: {
     backgroundColor: '#FDECEA',
     borderColor: '#E53935',
@@ -256,7 +290,11 @@ const styles = StyleSheet.create({
     padding: 8,
     marginBottom: 10,
   },
-  errorText: { color: '#E53935', fontSize: 12, textAlign: 'center' },
+  errorText: {
+    color: '#E53935',
+    fontSize: 12,
+    textAlign: 'center',
+  },
   button: {
     marginTop: 10,
     backgroundColor: '#1642BB',
@@ -264,8 +302,14 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     alignItems: 'center',
   },
-  buttonDisabled: { opacity: 0.6 },
-  buttonText: { color: 'white', fontSize: 17, fontWeight: '600' },
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 17,
+    fontWeight: '600',
+  },
 });
 
 export default KayitDr;
