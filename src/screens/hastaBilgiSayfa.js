@@ -1,11 +1,8 @@
-// MERYEM
-
 import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
   TextInput,
   ScrollView,
@@ -24,24 +21,17 @@ const HastaBilgiSayfa = ({ navigation }) => {
     ilacGecmisi: '',
   });
 
+  // 🔹 Kullanıcı bilgilerini doldur
   useEffect(() => {
+    if (!hasta) return;
+
     setProfile({
-      fullName: `${hasta?.ad || ''} ${hasta?.soyad || ''}`,
-      email: hasta?.email || '',
+      fullName: `${hasta.ad || ''} ${hasta.soyad || ''}`,
+      email: hasta.email || '',
       kronikHastaliklar: 'Yok',
       ilacGecmisi: 'Yok',
     });
   }, [hasta]);
-
-  // ✅ ÇIKIŞ + KULLANICI SEÇİM EKRANINA GİT
-  const handleLogout = () => {
-    logout();
-    navigation.replace('kullaniciSecim');
-  };
-
-  const handleSave = () => {
-    console.log('Kaydedilen bilgiler:', profile);
-  };
 
   const handleChange = (field, value) => {
     setProfile((prev) => ({
@@ -50,168 +40,159 @@ const HastaBilgiSayfa = ({ navigation }) => {
     }));
   };
 
+  const handleSave = () => {
+    console.log('Kaydedilen bilgiler:', profile);
+    // 🔜 Backend bağlanabilir
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigation.replace('kullaniciSecim');
+  };
+
   return (
-    <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.container}>
-        {/* HEADER */}
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Profil Bilgilerim</Text>
-        </View>
+    <ScrollView
+  style={{ flex: 1, backgroundColor: '#F4F6FA' }}  // scrollView tamamen beyaz
+  contentContainerStyle={styles.container}
+  showsVerticalScrollIndicator={false}
+>
+      
 
-        {/* CONTENT */}
-        <View style={styles.content}>
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Hasta Bilgileri</Text>
+      {/* 📄 PROFİL KARTI */}
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Hasta Bilgileri</Text>
 
-            <InfoRow
-              label="Ad / Soyad"
-              value={profile.fullName}
-              onChangeText={(v) => handleChange('fullName', v)}
-            />
+        <InfoRow
+          label="Ad / Soyad"
+          value={profile.fullName}
+          onChangeText={(v) => handleChange('fullName', v)}
+        />
 
-            <Divider />
+        <Divider />
 
-            <InfoRow
-              label="E-posta"
-              value={profile.email}
-              onChangeText={(v) => handleChange('email', v)}
-              keyboardType="email-address"
-            />
+        <InfoRow
+          label="E-posta"
+          value={profile.email}
+          onChangeText={(v) => handleChange('email', v)}
+          keyboardType="email-address"
+        />
 
-            <Divider />
+        <Divider />
 
-            <InfoRow
-              label="Kronik Hastalıklarım"
-              value={profile.kronikHastaliklar}
-              onChangeText={(v) =>
-                handleChange('kronikHastaliklar', v)
-              }
-              multiline
-            />
+        <InfoRow
+          label="Kronik Hastalıklarım"
+          value={profile.kronikHastaliklar}
+          onChangeText={(v) =>
+            handleChange('kronikHastaliklar', v)
+          }
+          multiline
+        />
 
-            <Divider />
+        <Divider />
 
-            <InfoRow
-              label="İlaç Geçmişim"
-              value={profile.ilacGecmisi}
-              onChangeText={(v) =>
-                handleChange('ilacGecmisi', v)
-              }
-              multiline
-            />
+        <InfoRow
+          label="İlaç Geçmişim"
+          value={profile.ilacGecmisi}
+          onChangeText={(v) =>
+            handleChange('ilacGecmisi', v)
+          }
+          multiline
+        />
 
-            <TouchableOpacity
-              style={styles.saveBtn}
-              onPress={handleSave}
-            >
-              <Text style={styles.saveBtnText}>Kaydet</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </ScrollView>
-
-      {/* ÇIKIŞ BUTONU */}
-      <View style={styles.logoutContainer}>
         <TouchableOpacity
-          style={styles.logoutBtn}
-          onPress={handleLogout}
+          style={styles.saveBtn}
+          onPress={handleSave}
         >
-          <Ionicons
-            name="log-out-outline"
-            size={16}
-            color="#fff"
-          />
-          <Text style={styles.logoutBtnText}>
-            Çıkış Yap
-          </Text>
+          <Text style={styles.saveBtnText}>Kaydet</Text>
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+
+      {/* 🚪 ÇIKIŞ */}
+      <TouchableOpacity
+        style={styles.logoutBtn}
+        onPress={handleLogout}
+      >
+        <Ionicons
+          name="log-out-outline"
+          size={18}
+          color="#fff"
+        />
+        <Text style={styles.logoutText}>
+          Çıkış Yap
+        </Text>
+      </TouchableOpacity>
+    </ScrollView>
   );
 };
 
 export default HastaBilgiSayfa;
 
-/* BİLGİ SATIRI */
+/* 🔹 BİLGİ SATIRI */
 const InfoRow = ({
   label,
   value,
   onChangeText,
   keyboardType = 'default',
   multiline = false,
-}) => {
-  return (
-    <View style={styles.row}>
-      <Text style={styles.rowLabel}>{label}</Text>
-      <TextInput
-        style={[
-          styles.rowInput,
-          multiline && { height: 60 },
-        ]}
-        value={value}
-        onChangeText={onChangeText}
-        keyboardType={keyboardType}
-        multiline={multiline}
-      />
-    </View>
-  );
-};
+}) => (
+  <View style={styles.row}>
+    <Text style={styles.rowLabel}>{label}</Text>
+    <TextInput
+      style={[
+        styles.rowInput,
+        multiline && { height: 70 },
+      ]}
+      value={value}
+      onChangeText={onChangeText}
+      keyboardType={keyboardType}
+      multiline={multiline}
+    />
+  </View>
+);
 
 const Divider = () => <View style={styles.divider} />;
 
-/* STYLES */
+/* 🎨 STYLES */
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#1483C7',
   },
+
   container: {
+    backgroundColor: '#F4F6FA',
+    padding: 16,
     paddingBottom: 40,
   },
-  header: {
-    backgroundColor: '#1483C7',
-    paddingVertical: 24,
-    paddingHorizontal: 16,
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '800',
-  },
-  content: {
-    paddingTop: 16,
-  },
+
   card: {
     backgroundColor: '#fff',
     borderRadius: 18,
     padding: 16,
     borderWidth: 1,
     borderColor: '#E8EEF6',
-    marginBottom: 20,
   },
+
   cardTitle: {
     fontSize: 14,
     fontWeight: '800',
     color: '#1483C7',
     marginBottom: 12,
   },
+
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 10,
     gap: 12,
+    marginBottom: 10,
   },
+
   rowLabel: {
     width: 120,
     fontWeight: '700',
     color: '#6B7280',
   },
+
   rowInput: {
     flex: 1,
     borderWidth: 1,
@@ -219,14 +200,16 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 8,
-    fontSize: 14,
     backgroundColor: '#F4F6FA',
+    fontSize: 14,
   },
+
   divider: {
     height: 1,
     backgroundColor: '#EEF2F7',
     marginVertical: 4,
   },
+
   saveBtn: {
     marginTop: 20,
     backgroundColor: '#2C4CCF',
@@ -234,28 +217,25 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     alignItems: 'center',
   },
+
   saveBtnText: {
     color: '#fff',
     fontWeight: '700',
     fontSize: 16,
   },
-  logoutContainer: {
-    padding: 16,
-    borderTopWidth: 1,
-    borderColor: '#E8EEF6',
-    backgroundColor: '#fff',
-  },
+
   logoutBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
+    marginTop: 24,
     backgroundColor: '#E53935',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    borderRadius: 10,
+    paddingVertical: 12,
+    flexDirection: 'row',
     justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
   },
-  logoutBtnText: {
+
+  logoutText: {
     color: '#fff',
     fontWeight: '700',
     fontSize: 15,

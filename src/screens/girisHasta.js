@@ -30,10 +30,9 @@ const GirisHasta = ({ navigation }) => {
     /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(val.trim());
 
   // Doktor ekranındakiyle aynı güçlü şifre kuralı
-  const isStrongPassword = (val) =>
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_\-+={}[\]|\\:;"'<>,.?/~]).{8,}$/.test(
-      val
-    );
+const isStrongPassword = (val) =>
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9]).{8,}$/.test(val);
+
 
   const emailError = useMemo(() => {
     if (!emailTouched) return '';

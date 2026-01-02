@@ -1,24 +1,28 @@
 import React, { createContext, useContext, useState } from 'react';
 
-const AuthContext = createContext();
+const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [hasta, setHasta] = useState(null);
-  const [users, setUsers] = useState([]); // kayıtlı kullanıcılar
+  const [users, setUsers] = useState([]);
 
-  // ✅ KAYIT
+  // ✅ KAYIT + OTOMATİK GİRİŞ
   const register = (newUser) => {
-    const exists = users.find((u) => u.email === newUser.email);
+    const exists = users.some((u) => u.email === newUser.email);
     if (exists) return false;
 
     setUsers((prev) => [...prev, newUser]);
+
+    // ✅ async state riskini by-pass ediyoruz
+    setHasta(newUser);
+
     return true;
   };
 
   // ✅ GİRİŞ
-  const login = (email, password) => {
+  const login = (email, sifre) => {
     const user = users.find(
-      (u) => u.email === email && u.sifre === password
+      (u) => u.email === email && u.sifre === sifre
     );
 
     if (!user) return false;
@@ -32,14 +36,29 @@ export const AuthProvider = ({ children }) => {
     setHasta(null);
   };
 
-  // ✅ ŞİFREMİ UNUTTUM
+  // ✅ ŞİFREMİ UNUTTUM (immutability doğru)
   const sifreGuncelle = (email, yeniSifre) => {
-    const index = users.findIndex((u) => u.email === email);
-    if (index === -1) return false;
+    let found = false;
 
-    const updated = [...users];
-    updated[index].sifre = yeniSifre;
-    setUsers(updated);
+    const updatedUsers = users.map((u) => {
+      if (u.email === email) {
+        found = true;
+        return { ...u, sifre: yeniSifre };
+      }
+      return u;
+    });
+
+    if (!found) return false;
+
+    setUsers(updatedUsers);
+
+    // Eğer giriş yapan kişi buysa state'i de güncelle
+    setHasta((prev) =>
+      prev && prev.email === email
+        ? { ...prev, sifre: yeniSifre }
+        : prev
+    );
+
     return true;
   };
 
@@ -47,6 +66,7 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider
       value={{
         hasta,
+        users,
         register,
         login,
         logout,
@@ -58,4 +78,10 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const ctx = useContext(AuthContext);
+  if (!ctx) {
+    throw new Error('useAuth AuthProvider içinde kullanılmalı');
+  }
+  return ctx;
+};

@@ -1,0 +1,118 @@
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+
+const HatirlatmaKart = ({ ilac, gecmis, readOnly, onIctim, onAtladim }) => {
+  if (!ilac) return null; // 🔒 ekstra güvenlik
+
+  return (
+    <View style={[styles.card, gecmis && styles.gecmis]}>
+      {/* İlaç adı ve saat */}
+      <View style={styles.row}>
+        <Text style={styles.ilacAdi}>
+          {ilac.ad || 'İlaç Adı'}
+        </Text>
+        <Text style={styles.saat}>
+          {ilac.saat || '--:--'}
+        </Text>
+      </View>
+
+      {/* Açıklama */}
+      {ilac.aciklama ? (
+        <Text style={styles.aciklama}>• {ilac.aciklama}</Text>
+      ) : null}
+
+      {/* Eğer readOnly değilse butonları göster */}
+      {!readOnly ? (
+        <View style={styles.actions}>
+          <TouchableOpacity
+            style={[styles.btn, styles.ok]}
+            onPress={onIctim}
+          >
+            <Text style={styles.btnText}>✓</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.btn, styles.no]}
+            onPress={onAtladim}
+          >
+            <Text style={styles.btnText}>✕</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        // readOnly ise durum yazısı göster
+        <Text style={[
+          styles.durumText,
+          { color: ilac.durum === 'icildi' ? '#7ED321' : '#D0021B' }
+        ]}>
+          {ilac.durum === 'icildi' ? 'İçildi' : 'Atlandı'}
+        </Text>
+      )}
+    </View>
+  );
+};
+
+export default HatirlatmaKart;
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: '#3F7FC1',
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 12,
+  },
+  gecmis: {
+    opacity: 0.6,
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  ilacAdi: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  saat: {
+    backgroundColor: '#2C4BBE',
+    color: 'white',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 20,
+    fontWeight: '600',
+  },
+  aciklama: {
+    color: 'white',
+    marginTop: 6,
+    fontSize: 13,
+  },
+  actions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 12,
+    gap: 10,
+  },
+  btn: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  ok: {
+    backgroundColor: '#7ED321',
+  },
+  no: {
+    backgroundColor: '#D0021B',
+  },
+  btnText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  durumText: {
+    marginTop: 12,
+    fontWeight: '700',
+    fontSize: 14,
+  },
+});

@@ -47,12 +47,11 @@ const DrBilgiSayfa = ({ navigation, route }) => {
             resizeMode="cover"
           />
           <View>
-            <Text style={styles.headerHi}>Merhaba</Text>
+            <Text style={styles.headerHi}>Profil Bilgilerim</Text>
             <Text style={styles.headerName}>{profile.fullName}</Text>
           </View>
         </View>
 
-        <Ionicons name="notifications-outline" size={22} color="#fff" />
       </View>
 
       {/* CONTENT */}

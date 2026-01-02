@@ -93,7 +93,6 @@ const DrAnaSayfa = ({ navigation, route }) => {
           </Text>
         </View>
 
-        <Ionicons name="notifications-outline" size={24} color="#fff" />
       </View>
 
       {/* SEARCH */}

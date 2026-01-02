@@ -26,9 +26,7 @@ const DrIlacEkle = () => {
 
         <Text style={styles.headerTitle}>İlaç Ekle</Text>
 
-        <View style={styles.headerSideRight}>
-          <Ionicons name="notifications-outline" size={24} color="#fff" />
-        </View>
+  
       </View>
 
       {/* ÜSTTEKİ ARAMA */}
@@ -133,13 +131,6 @@ const styles = StyleSheet.create({
     height: 44,
     justifyContent: 'center',
     alignItems: 'flex-start',
-  },
-
-  headerSideRight: {
-    width: 44,
-    height: 44,
-    justifyContent: 'center',
-    alignItems: 'flex-end',
   },
 
   headerLogo: {

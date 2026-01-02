@@ -30,10 +30,9 @@ const KayitHasta = ({ navigation }) => {
   const isValidEmail = (val) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(val.trim());
 
-  const isStrongPassword = (val) =>
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_\-+={}[\]|\\:;"'<>,.?/~`]).{8,}$/.test(
-      val
-    );
+ const isStrongPassword = (val) =>
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9]).{8,}$/.test(val);
+
 
   const adError = useMemo(() => {
     if (!adTouched) return '';

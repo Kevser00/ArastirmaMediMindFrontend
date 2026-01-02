@@ -15,7 +15,9 @@ const DoktorTabs = ({ route }) => {
 
   return (
     <Tab.Navigator
-      screenOptions={{ headerShown: false }}
+      screenOptions={{
+        headerShown: false, // ❗ TÜM NAV HEADER KAPALI
+      }}
       tabBar={(props) => <CustomDoctorTabBar {...props} />}
     >
       <Tab.Screen
@@ -25,10 +27,16 @@ const DoktorTabs = ({ route }) => {
       />
 
       <Tab.Screen name="drIlacEkle" component={DrIlacEkle} />
-      <Tab.Screen name="mediAi" component={MediAi} />
+      <Tab.Screen
+  name="mediAi"
+  component={MediAi}
+  initialParams={{ showHeader: true }}
+/>
+
       <Tab.Screen name="drBilgiSayfa" component={DrBilgiSayfa} />
     </Tab.Navigator>
   );
 };
+
 
 export default DoktorTabs;

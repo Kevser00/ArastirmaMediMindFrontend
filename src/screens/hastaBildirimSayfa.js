@@ -67,9 +67,7 @@ const HastaBildirimSayfa = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Bildirim Ekle</Text>
-        </View>
+      
 
         <View style={styles.formCard}>
           {/* İLAÇ ADI */}
@@ -174,18 +172,7 @@ const styles = StyleSheet.create({
   container: {
     paddingBottom: 40,
   },
-  header: {
-    backgroundColor: "#1483C7",
-    paddingVertical: 22,
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-    alignItems: "center",
-  },
-  headerTitle: {
-    color: "#fff",
-    fontSize: 20,
-    fontWeight: "700",
-  },
+
   formCard: {
     backgroundColor: "#1483C7",
     margin: 16,
