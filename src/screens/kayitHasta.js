@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -7,19 +7,20 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
-} from 'react-native';
+  ActivityIndicator,
+} from "react-native";
 
-import NavigationFooter from '../components/NavigationFooter';
-import { useAuth } from '../context/AuthContext';
+import NavigationFooter from "../components/NavigationFooter";
+import { useAuth } from "../context/AuthContext";
 
 const KayitHasta = ({ navigation }) => {
-  const { register } = useAuth();
+  const { register, loading } = useAuth();
 
-  const [ad, setAd] = useState('');
-  const [soyad, setSoyad] = useState('');
-  const [email, setEmail] = useState('');
-  const [sifre, setSifre] = useState('');
-  const [sifreTekrar, setSifreTekrar] = useState('');
+  const [ad, setAd] = useState("");
+  const [soyad, setSoyad] = useState("");
+  const [email, setEmail] = useState("");
+  const [sifre, setSifre] = useState("");
+  const [sifreTekrar, setSifreTekrar] = useState("");
 
   const [adTouched, setAdTouched] = useState(false);
   const [soyadTouched, setSoyadTouched] = useState(false);
@@ -27,45 +28,41 @@ const KayitHasta = ({ navigation }) => {
   const [sifreTouched, setSifreTouched] = useState(false);
   const [sifreTekrarTouched, setSifreTekrarTouched] = useState(false);
 
-  const isValidEmail = (val) =>
-    /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(val.trim());
-
- const isStrongPassword = (val) =>
-  /^(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9]).{8,}$/.test(val);
-
+  const isValidEmail = (val) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(val.trim());
+  const isStrongPassword = (val) => /^(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9]).{8,}$/.test(val);
 
   const adError = useMemo(() => {
-    if (!adTouched) return '';
-    if (!ad.trim()) return 'Ad boş bırakılamaz.';
-    return '';
+    if (!adTouched) return "";
+    if (!ad.trim()) return "Ad boş bırakılamaz.";
+    return "";
   }, [ad, adTouched]);
 
   const soyadError = useMemo(() => {
-    if (!soyadTouched) return '';
-    if (!soyad.trim()) return 'Soyad boş bırakılamaz.';
-    return '';
+    if (!soyadTouched) return "";
+    if (!soyad.trim()) return "Soyad boş bırakılamaz.";
+    return "";
   }, [soyad, soyadTouched]);
 
   const emailError = useMemo(() => {
-    if (!emailTouched) return '';
-    if (!email.trim()) return 'E-posta boş bırakılamaz.';
-    if (!isValidEmail(email)) return 'Geçerli bir e-posta giriniz.';
-    return '';
+    if (!emailTouched) return "";
+    if (!email.trim()) return "E-posta boş bırakılamaz.";
+    if (!isValidEmail(email)) return "Geçerli bir e-posta giriniz.";
+    return "";
   }, [email, emailTouched]);
 
   const sifreError = useMemo(() => {
-    if (!sifreTouched) return '';
-    if (!sifre) return 'Şifre boş bırakılamaz.';
+    if (!sifreTouched) return "";
+    if (!sifre) return "Şifre boş bırakılamaz.";
     if (!isStrongPassword(sifre))
-      return 'Şifre en az 8 karakter, 1 büyük, 1 küçük ve 1 özel karakter içermelidir.';
-    return '';
+      return "Şifre en az 8 karakter, 1 büyük, 1 küçük ve 1 özel karakter içermelidir.";
+    return "";
   }, [sifre, sifreTouched]);
 
   const sifreTekrarError = useMemo(() => {
-    if (!sifreTekrarTouched) return '';
-    if (!sifreTekrar) return 'Şifre tekrar boş bırakılamaz.';
-    if (sifreTekrar !== sifre) return 'Şifreler eşleşmiyor.';
-    return '';
+    if (!sifreTekrarTouched) return "";
+    if (!sifreTekrar) return "Şifre tekrar boş bırakılamaz.";
+    if (sifreTekrar !== sifre) return "Şifreler eşleşmiyor.";
+    return "";
   }, [sifreTekrar, sifre, sifreTekrarTouched]);
 
   const isFormValid = useMemo(() => {
@@ -79,7 +76,7 @@ const KayitHasta = ({ navigation }) => {
     );
   }, [ad, soyad, email, sifre, sifreTekrar]);
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     setAdTouched(true);
     setSoyadTouched(true);
     setEmailTouched(true);
@@ -88,32 +85,26 @@ const KayitHasta = ({ navigation }) => {
 
     if (!isFormValid) return;
 
-    const newUser = {
-      ad: ad.trim(),
-      soyad: soyad.trim(),
-      email: email.trim().toLowerCase(),
-      sifre, // ✅ AuthContext login u.sifre ile kontrol ediyor
-    };
+    try {
+      await register({
+        role: "user",
+        password: sifre,
+        name: ad.trim(),
+        surname: soyad.trim(),
+        email: email.trim().toLowerCase(),
+      });
 
-    const ok = register(newUser);
-
-    if (!ok) {
-      Alert.alert('Hata', 'Bu e-posta ile zaten kayıt olunmuş.');
-      return;
+      Alert.alert("Başarılı", "Kayıt oluşturuldu. Giriş yapabilirsiniz.");
+      navigation.replace("girisHasta");
+    } catch (e) {
+      console.log("REGISTER ERR:", e?.response?.data || e.message);
+      Alert.alert("Hata", "Kayıt başarısız. Bilgileri kontrol edin.");
     }
-
-    Alert.alert('Başarılı', 'Kayıt oluşturuldu. Giriş yapabilirsiniz.');
-    navigation.replace('girisHasta');
   };
 
   return (
     <View style={styles.container}>
-      <Image
-        source={require('../../assets/medilogo.png')}
-        style={styles.logo}
-        resizeMode="contain"
-      />
-
+      <Image source={require("../../assets/medilogo.png")} style={styles.logo} resizeMode="contain" />
       <Text style={styles.title}>Kayıt Ol</Text>
 
       <View style={styles.box}>
@@ -129,18 +120,13 @@ const KayitHasta = ({ navigation }) => {
           onBlur={() => setAdTouched(true)}
         />
         {adTouched && adError ? (
-          <View style={styles.errorBox}>
-            <Text style={styles.errorText}>{adError}</Text>
-          </View>
+          <View style={styles.errorBox}><Text style={styles.errorText}>{adError}</Text></View>
         ) : null}
 
         <TextInput
           placeholder="Soyad"
           placeholderTextColor="#888"
-          style={[
-            styles.input,
-            soyadTouched && soyadError ? styles.inputError : null,
-          ]}
+          style={[styles.input, soyadTouched && soyadError ? styles.inputError : null]}
           value={soyad}
           onChangeText={(t) => {
             setSoyad(t);
@@ -149,9 +135,7 @@ const KayitHasta = ({ navigation }) => {
           onBlur={() => setSoyadTouched(true)}
         />
         {soyadTouched && soyadError ? (
-          <View style={styles.errorBox}>
-            <Text style={styles.errorText}>{soyadError}</Text>
-          </View>
+          <View style={styles.errorBox}><Text style={styles.errorText}>{soyadError}</Text></View>
         ) : null}
 
         <TextInput
@@ -160,10 +144,7 @@ const KayitHasta = ({ navigation }) => {
           keyboardType="email-address"
           autoCapitalize="none"
           autoCorrect={false}
-          style={[
-            styles.input,
-            emailTouched && emailError ? styles.inputError : null,
-          ]}
+          style={[styles.input, emailTouched && emailError ? styles.inputError : null]}
           value={email}
           onChangeText={(t) => {
             setEmail(t);
@@ -172,9 +153,7 @@ const KayitHasta = ({ navigation }) => {
           onBlur={() => setEmailTouched(true)}
         />
         {emailTouched && emailError ? (
-          <View style={styles.errorBox}>
-            <Text style={styles.errorText}>{emailError}</Text>
-          </View>
+          <View style={styles.errorBox}><Text style={styles.errorText}>{emailError}</Text></View>
         ) : null}
 
         <TextInput
@@ -182,10 +161,7 @@ const KayitHasta = ({ navigation }) => {
           placeholderTextColor="#888"
           secureTextEntry
           autoCapitalize="none"
-          style={[
-            styles.input,
-            sifreTouched && sifreError ? styles.inputError : null,
-          ]}
+          style={[styles.input, sifreTouched && sifreError ? styles.inputError : null]}
           value={sifre}
           onChangeText={(t) => {
             setSifre(t);
@@ -194,9 +170,7 @@ const KayitHasta = ({ navigation }) => {
           onBlur={() => setSifreTouched(true)}
         />
         {sifreTouched && sifreError ? (
-          <View style={styles.errorBox}>
-            <Text style={styles.errorText}>{sifreError}</Text>
-          </View>
+          <View style={styles.errorBox}><Text style={styles.errorText}>{sifreError}</Text></View>
         ) : null}
 
         <TextInput
@@ -204,10 +178,7 @@ const KayitHasta = ({ navigation }) => {
           placeholderTextColor="#888"
           secureTextEntry
           autoCapitalize="none"
-          style={[
-            styles.input,
-            sifreTekrarTouched && sifreTekrarError ? styles.inputError : null,
-          ]}
+          style={[styles.input, sifreTekrarTouched && sifreTekrarError ? styles.inputError : null]}
           value={sifreTekrar}
           onChangeText={(t) => {
             setSifreTekrar(t);
@@ -216,18 +187,16 @@ const KayitHasta = ({ navigation }) => {
           onBlur={() => setSifreTekrarTouched(true)}
         />
         {sifreTekrarTouched && sifreTekrarError ? (
-          <View style={styles.errorBox}>
-            <Text style={styles.errorText}>{sifreTekrarError}</Text>
-          </View>
+          <View style={styles.errorBox}><Text style={styles.errorText}>{sifreTekrarError}</Text></View>
         ) : null}
 
         <TouchableOpacity
-          style={[styles.button, !isFormValid && styles.buttonDisabled]}
+          style={[styles.button, (!isFormValid || loading) && styles.buttonDisabled]}
           onPress={handleRegister}
           activeOpacity={0.8}
-          disabled={!isFormValid}
+          disabled={!isFormValid || loading}
         >
-          <Text style={styles.buttonText}>Kayıt Ol</Text>
+          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Kayıt Ol</Text>}
         </TouchableOpacity>
       </View>
 
@@ -236,49 +205,18 @@ const KayitHasta = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#1483C7', alignItems: 'center' },
-  logo: { width: 80, height: 80, marginTop: 60, marginBottom: 20 },
-  title: { fontSize: 24, fontWeight: '600', color: 'white', marginBottom: 20 },
-  box: {
-    marginTop: 10,
-    width: '80%',
-    backgroundColor: 'white',
-    borderRadius: 25,
-    paddingVertical: 30,
-    paddingHorizontal: 20,
-    elevation: 6,
-  },
-  input: {
-    width: '100%',
-    backgroundColor: '#EAEAEA',
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    fontSize: 16,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: 'transparent',
-  },
-  inputError: { borderColor: '#E53935' },
-  errorBox: {
-    backgroundColor: '#FDECEA',
-    borderColor: '#E53935',
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 8,
-    marginBottom: 10,
-  },
-  errorText: { color: '#E53935', fontSize: 12, textAlign: 'center' },
-  button: {
-    marginTop: 10,
-    backgroundColor: '#1642BB',
-    paddingVertical: 12,
-    borderRadius: 25,
-    alignItems: 'center',
-  },
-  buttonDisabled: { opacity: 0.6 },
-  buttonText: { color: 'white', fontSize: 17, fontWeight: '600' },
-});
-
 export default KayitHasta;
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: "#1483C7", alignItems: "center" },
+  logo: { width: 80, height: 80, marginTop: 60, marginBottom: 20 },
+  title: { fontSize: 24, fontWeight: "600", color: "white", marginBottom: 20 },
+  box: { marginTop: 10, width: "80%", backgroundColor: "white", borderRadius: 25, paddingVertical: 30, paddingHorizontal: 20, elevation: 6 },
+  input: { width: "100%", backgroundColor: "#EAEAEA", borderRadius: 10, paddingHorizontal: 15, paddingVertical: 10, fontSize: 16, marginBottom: 8, borderWidth: 1, borderColor: "transparent" },
+  inputError: { borderColor: "#E53935" },
+  errorBox: { backgroundColor: "#FDECEA", borderColor: "#E53935", borderWidth: 1, borderRadius: 8, padding: 8, marginBottom: 10 },
+  errorText: { color: "#E53935", fontSize: 12, textAlign: "center" },
+  button: { marginTop: 10, backgroundColor: "#1642BB", paddingVertical: 12, borderRadius: 25, alignItems: "center" },
+  buttonDisabled: { opacity: 0.6 },
+  buttonText: { color: "white", fontSize: 17, fontWeight: "600" },
+});

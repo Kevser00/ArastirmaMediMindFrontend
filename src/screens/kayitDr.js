@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -6,115 +6,125 @@ import {
   Image,
   TextInput,
   TouchableOpacity,
-} from 'react-native';
+  Alert,
+  ActivityIndicator,
+} from "react-native";
 
-import NavigationFooter from '../components/NavigationFooter';
+import NavigationFooter from "../components/NavigationFooter";
+import { useAuth } from "../context/AuthContext";
 
 const KayitDr = ({ navigation }) => {
-  const [ad, setAd] = useState('');
-  const [soyad, setSoyad] = useState('');
-  const [sicilNo, setSicilNo] = useState('');
-  const [sifre, setSifre] = useState('');
-  const [sifreTekrar, setSifreTekrar] = useState('');
+  const { register, loading } = useAuth();
+
+  const [ad, setAd] = useState("");
+  const [soyad, setSoyad] = useState("");
+  const [email, setEmail] = useState("");           // ✅ ekledik
+  const [sicilNo, setSicilNo] = useState("");
+  const [sifre, setSifre] = useState("");
+  const [sifreTekrar, setSifreTekrar] = useState("");
 
   const [adTouched, setAdTouched] = useState(false);
   const [soyadTouched, setSoyadTouched] = useState(false);
+  const [emailTouched, setEmailTouched] = useState(false); // ✅
   const [sicilTouched, setSicilTouched] = useState(false);
   const [sifreTouched, setSifreTouched] = useState(false);
   const [sifreTekrarTouched, setSifreTekrarTouched] = useState(false);
 
-  const isValidSicil = (val) => {
-    const v = val.trim();
-    if (!v) return false;
-    if (!/^\d+$/.test(v)) return false;
-    if (v.length < 5) return false;
-    return true;
-  };
-
-  const isStrongPassword = (val) =>
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_\-+={}[\]|\\:;"'<>,.?/~]).{8,}$/.test(
-      val
-    );
+  const isValidEmail = (val) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(val.trim());
+  const isValidSicil = (val) => /^\d{5,}$/.test(val.trim());
+  const isStrongPassword = (val) => /^(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9]).{8,}$/.test(val);
 
   const adError = useMemo(() => {
-    if (!adTouched) return '';
-    if (!ad.trim()) return 'Ad boş bırakılamaz.';
-    return '';
+    if (!adTouched) return "";
+    if (!ad.trim()) return "Ad boş bırakılamaz.";
+    return "";
   }, [ad, adTouched]);
 
   const soyadError = useMemo(() => {
-    if (!soyadTouched) return '';
-    if (!soyad.trim()) return 'Soyad boş bırakılamaz.';
-    return '';
+    if (!soyadTouched) return "";
+    if (!soyad.trim()) return "Soyad boş bırakılamaz.";
+    return "";
   }, [soyad, soyadTouched]);
 
+  const emailError = useMemo(() => {
+    if (!emailTouched) return "";
+    if (!email.trim()) return "E-posta boş bırakılamaz.";
+    if (!isValidEmail(email)) return "Geçerli bir e-posta giriniz.";
+    return "";
+  }, [email, emailTouched]);
+
   const sicilError = useMemo(() => {
-    if (!sicilTouched) return '';
-    if (!sicilNo.trim()) return 'Sicil no boş bırakılamaz.';
-    if (!/^\d+$/.test(sicilNo.trim()))
-      return 'Sicil no sadece rakam olmalı.';
-    if (sicilNo.trim().length < 5)
-      return 'Sicil no en az 5 haneli olmalı.';
-    return '';
+    if (!sicilTouched) return "";
+    if (!sicilNo.trim()) return "Sicil no boş bırakılamaz.";
+    if (!isValidSicil(sicilNo)) return "Sicil no en az 5 haneli olmalı (sadece rakam).";
+    return "";
   }, [sicilNo, sicilTouched]);
 
   const sifreError = useMemo(() => {
-    if (!sifreTouched) return '';
-    if (!sifre) return 'Şifre boş bırakılamaz.';
+    if (!sifreTouched) return "";
+    if (!sifre) return "Şifre boş bırakılamaz.";
     if (!isStrongPassword(sifre))
-      return 'Şifre en az 8 karakter, 1 büyük, 1 küçük ve 1 özel karakter içermelidir.';
-    return '';
+      return "Şifre en az 8 karakter, 1 büyük, 1 küçük ve 1 özel karakter içermelidir.";
+    return "";
   }, [sifre, sifreTouched]);
 
   const sifreTekrarError = useMemo(() => {
-    if (!sifreTekrarTouched) return '';
-    if (!sifreTekrar) return 'Şifre tekrar boş bırakılamaz.';
-    if (sifreTekrar !== sifre) return 'Şifreler eşleşmiyor.';
-    return '';
+    if (!sifreTekrarTouched) return "";
+    if (!sifreTekrar) return "Şifre tekrar boş bırakılamaz.";
+    if (sifreTekrar !== sifre) return "Şifreler eşleşmiyor.";
+    return "";
   }, [sifreTekrar, sifre, sifreTekrarTouched]);
 
   const isFormValid = useMemo(() => {
     return (
       ad.trim() &&
       soyad.trim() &&
+      isValidEmail(email) &&
       isValidSicil(sicilNo) &&
       isStrongPassword(sifre) &&
       sifreTekrar === sifre &&
       !!sifreTekrar
     );
-  }, [ad, soyad, sicilNo, sifre, sifreTekrar]);
+  }, [ad, soyad, email, sicilNo, sifre, sifreTekrar]);
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     setAdTouched(true);
     setSoyadTouched(true);
+    setEmailTouched(true);
     setSicilTouched(true);
     setSifreTouched(true);
     setSifreTekrarTouched(true);
 
     if (!isFormValid) return;
 
-    // ✅ Kayıt başarılı → Doktor giriş ekranına dön
-    navigation.replace('girisDr');
+    try {
+      await register({
+        role: "doctor",
+        password: sifre,
+        name: ad.trim(),
+        surname: soyad.trim(),
+        email: email.trim().toLowerCase(),          // ✅ gerçek email
+        registrationNumber: sicilNo.trim(),
+      });
+
+      Alert.alert("Başarılı", "Doktor kaydı oluşturuldu. Giriş yapabilirsiniz.");
+      navigation.replace("girisDr");
+    } catch (e) {
+      console.log("REGISTER DR ERR:", e?.response?.data || e.message);
+      Alert.alert("Hata", "Kayıt başarısız. Bilgileri kontrol edin.");
+    }
   };
 
   return (
     <View style={styles.container}>
-      <Image
-        source={require('../../assets/medilogo.png')}
-        style={styles.logo}
-        resizeMode="contain"
-      />
-
+      <Image source={require("../../assets/medilogo.png")} style={styles.logo} resizeMode="contain" />
       <Text style={styles.title}>Kayıt Ol</Text>
 
       <View style={styles.box}>
         <TextInput
           placeholder="Ad"
           placeholderTextColor="#888"
-          style={[
-            styles.input,
-            adTouched && adError ? styles.inputError : null,
-          ]}
+          style={[styles.input, adTouched && adError ? styles.inputError : null]}
           value={ad}
           onChangeText={(t) => {
             setAd(t);
@@ -122,20 +132,12 @@ const KayitDr = ({ navigation }) => {
           }}
           onBlur={() => setAdTouched(true)}
         />
-
-        {adTouched && adError ? (
-          <View style={styles.errorBox}>
-            <Text style={styles.errorText}>{adError}</Text>
-          </View>
-        ) : null}
+        {adTouched && adError ? <View style={styles.errorBox}><Text style={styles.errorText}>{adError}</Text></View> : null}
 
         <TextInput
           placeholder="Soyad"
           placeholderTextColor="#888"
-          style={[
-            styles.input,
-            soyadTouched && soyadError ? styles.inputError : null,
-          ]}
+          style={[styles.input, soyadTouched && soyadError ? styles.inputError : null]}
           value={soyad}
           onChangeText={(t) => {
             setSoyad(t);
@@ -143,45 +145,45 @@ const KayitDr = ({ navigation }) => {
           }}
           onBlur={() => setSoyadTouched(true)}
         />
+        {soyadTouched && soyadError ? <View style={styles.errorBox}><Text style={styles.errorText}>{soyadError}</Text></View> : null}
 
-        {soyadTouched && soyadError ? (
-          <View style={styles.errorBox}>
-            <Text style={styles.errorText}>{soyadError}</Text>
-          </View>
-        ) : null}
+        {/* ✅ Doktor email */}
+        <TextInput
+          placeholder="E-posta"
+          placeholderTextColor="#888"
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoCorrect={false}
+          style={[styles.input, emailTouched && emailError ? styles.inputError : null]}
+          value={email}
+          onChangeText={(t) => {
+            setEmail(t);
+            if (!emailTouched) setEmailTouched(true);
+          }}
+          onBlur={() => setEmailTouched(true)}
+        />
+        {emailTouched && emailError ? <View style={styles.errorBox}><Text style={styles.errorText}>{emailError}</Text></View> : null}
 
         <TextInput
           placeholder="Sicil No"
           placeholderTextColor="#888"
-          style={[
-            styles.input,
-            sicilTouched && sicilError ? styles.inputError : null,
-          ]}
+          style={[styles.input, sicilTouched && sicilError ? styles.inputError : null]}
           value={sicilNo}
           onChangeText={(t) => {
-            const onlyDigits = t.replace(/[^0-9]/g, '');
-            setSicilNo(onlyDigits);
+            setSicilNo(t.replace(/[^0-9]/g, ""));
             if (!sicilTouched) setSicilTouched(true);
           }}
           onBlur={() => setSicilTouched(true)}
           keyboardType="number-pad"
         />
-
-        {sicilTouched && sicilError ? (
-          <View style={styles.errorBox}>
-            <Text style={styles.errorText}>{sicilError}</Text>
-          </View>
-        ) : null}
+        {sicilTouched && sicilError ? <View style={styles.errorBox}><Text style={styles.errorText}>{sicilError}</Text></View> : null}
 
         <TextInput
           placeholder="Şifre"
           placeholderTextColor="#888"
           secureTextEntry
           autoCapitalize="none"
-          style={[
-            styles.input,
-            sifreTouched && sifreError ? styles.inputError : null,
-          ]}
+          style={[styles.input, sifreTouched && sifreError ? styles.inputError : null]}
           value={sifre}
           onChangeText={(t) => {
             setSifre(t);
@@ -189,50 +191,30 @@ const KayitDr = ({ navigation }) => {
           }}
           onBlur={() => setSifreTouched(true)}
         />
-
-        {sifreTouched && sifreError ? (
-          <View style={styles.errorBox}>
-            <Text style={styles.errorText}>{sifreError}</Text>
-          </View>
-        ) : null}
+        {sifreTouched && sifreError ? <View style={styles.errorBox}><Text style={styles.errorText}>{sifreError}</Text></View> : null}
 
         <TextInput
           placeholder="Şifre Tekrar"
           placeholderTextColor="#888"
           secureTextEntry
           autoCapitalize="none"
-          style={[
-            styles.input,
-            sifreTekrarTouched && sifreTekrarError
-              ? styles.inputError
-              : null,
-          ]}
+          style={[styles.input, sifreTekrarTouched && sifreTekrarError ? styles.inputError : null]}
           value={sifreTekrar}
           onChangeText={(t) => {
             setSifreTekrar(t);
-            if (!sifreTekrarTouched)
-              setSifreTekrarTouched(true);
+            if (!sifreTekrarTouched) setSifreTekrarTouched(true);
           }}
           onBlur={() => setSifreTekrarTouched(true)}
         />
-
-        {sifreTekrarTouched && sifreTekrarError ? (
-          <View style={styles.errorBox}>
-            <Text style={styles.errorText}>
-              {sifreTekrarError}
-            </Text>
-          </View>
-        ) : null}
+        {sifreTekrarTouched && sifreTekrarError ? <View style={styles.errorBox}><Text style={styles.errorText}>{sifreTekrarError}</Text></View> : null}
 
         <TouchableOpacity
-          style={[
-            styles.button,
-            !isFormValid && styles.buttonDisabled,
-          ]}
+          style={[styles.button, (!isFormValid || loading) && styles.buttonDisabled]}
           onPress={handleRegister}
           activeOpacity={0.8}
+          disabled={!isFormValid || loading}
         >
-          <Text style={styles.buttonText}>Kayıt Ol</Text>
+          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Kayıt Ol</Text>}
         </TouchableOpacity>
       </View>
 
@@ -241,75 +223,18 @@ const KayitDr = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#1483C7',
-    alignItems: 'center',
-  },
-  logo: {
-    width: 80,
-    height: 80,
-    marginTop: 60,
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: 'white',
-    marginBottom: 20,
-  },
-  box: {
-    marginTop: 10,
-    width: '80%',
-    backgroundColor: 'white',
-    borderRadius: 25,
-    paddingVertical: 30,
-    paddingHorizontal: 20,
-    elevation: 6,
-  },
-  input: {
-    width: '100%',
-    backgroundColor: '#EAEAEA',
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    fontSize: 16,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: 'transparent',
-  },
-  inputError: {
-    borderColor: '#E53935',
-  },
-  errorBox: {
-    backgroundColor: '#FDECEA',
-    borderColor: '#E53935',
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 8,
-    marginBottom: 10,
-  },
-  errorText: {
-    color: '#E53935',
-    fontSize: 12,
-    textAlign: 'center',
-  },
-  button: {
-    marginTop: 10,
-    backgroundColor: '#1642BB',
-    paddingVertical: 12,
-    borderRadius: 25,
-    alignItems: 'center',
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 17,
-    fontWeight: '600',
-  },
-});
-
 export default KayitDr;
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: "#1483C7", alignItems: "center" },
+  logo: { width: 80, height: 80, marginTop: 60, marginBottom: 20 },
+  title: { fontSize: 24, fontWeight: "600", color: "white", marginBottom: 20 },
+  box: { marginTop: 10, width: "80%", backgroundColor: "white", borderRadius: 25, paddingVertical: 30, paddingHorizontal: 20, elevation: 6 },
+  input: { width: "100%", backgroundColor: "#EAEAEA", borderRadius: 10, paddingHorizontal: 15, paddingVertical: 10, fontSize: 16, marginBottom: 8, borderWidth: 1, borderColor: "transparent" },
+  inputError: { borderColor: "#E53935" },
+  errorBox: { backgroundColor: "#FDECEA", borderColor: "#E53935", borderWidth: 1, borderRadius: 8, padding: 8, marginBottom: 10 },
+  errorText: { color: "#E53935", fontSize: 12, textAlign: "center" },
+  button: { marginTop: 10, backgroundColor: "#1642BB", paddingVertical: 12, borderRadius: 25, alignItems: "center" },
+  buttonDisabled: { opacity: 0.6 },
+  buttonText: { color: "white", fontSize: 17, fontWeight: "600" },
+});

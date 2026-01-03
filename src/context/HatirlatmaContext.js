@@ -1,67 +1,39 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import React, { createContext, useContext, useMemo, useState } from "react";
+import { reminderService } from "../api/reminderService";
 
 const HatirlatmaContext = createContext(null);
 
-const STORAGE_KEY = "HATIRLATMALAR";
-
 export const HatirlatmaProvider = ({ children }) => {
   const [hatirlatmalar, setHatirlatmalar] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  // 🔹 Uygulama açılınca hatırlatmaları yükle
-  useEffect(() => {
-    const yukle = async () => {
-      try {
-        const data = await AsyncStorage.getItem(STORAGE_KEY);
-        if (data) {
-          setHatirlatmalar(JSON.parse(data));
-        }
-      } catch (e) {
-        console.log("Hatırlatma yükleme hatası:", e);
-      }
-    };
-    yukle();
-  }, []);
-
-  // 🔹 Her değişimde AsyncStorage’a kaydet
-  useEffect(() => {
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(hatirlatmalar));
-  }, [hatirlatmalar]);
-
-  // 🔹 Hatırlatma ekle
-  const ekleHatirlatma = (yeni) => {
-    setHatirlatmalar((prev) => [yeni, ...prev]);
+  const refresh = async () => {
+    setLoading(true);
+    try {
+      const data = await reminderService.getMine(); // GET /api/reminders
+      setHatirlatmalar(Array.isArray(data) ? data : []);
+    } catch (e) {
+      console.log("REMINDERS GET ERR:", e?.response?.data || e.message);
+      setHatirlatmalar([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // 🔹 Durum güncelle (aktif / tamamlandı vs.)
-  const durumGuncelle = (id, durum) => {
-    setHatirlatmalar((prev) =>
-      prev.map((h) =>
-        h.id === id ? { ...h, durum } : h
-      )
-    );
-  };
-
-  return (
-    <HatirlatmaContext.Provider
-      value={{
-        hatirlatmalar,
-        ekleHatirlatma,
-        durumGuncelle,
-      }}
-    >
-      {children}
-    </HatirlatmaContext.Provider>
+  const value = useMemo(
+    () => ({
+      hatirlatmalar,
+      loading,
+      refresh,
+    }),
+    [hatirlatmalar, loading]
   );
+
+  return <HatirlatmaContext.Provider value={value}>{children}</HatirlatmaContext.Provider>;
 };
 
-// ✅ GÜVENLİ HOOK (Provider yoksa net hata verir)
 export const useHatirlatma = () => {
   const ctx = useContext(HatirlatmaContext);
-  if (!ctx) {
-    throw new Error(
-      "useHatirlatma must be used within a HatirlatmaProvider"
-    );
-  }
+  if (!ctx) throw new Error("useHatirlatma HatirlatmaProvider içinde kullanılmalı");
   return ctx;
 };
