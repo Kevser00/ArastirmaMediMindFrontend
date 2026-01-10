@@ -1,7 +1,17 @@
 import { api } from "./api";
-import { endpoints } from "./endpoints";
 
 export const reminderService = {
-  create: (payload) => api.post(endpoints.reminders, payload).then((r) => r.data),
-  getMine: () => api.get(endpoints.reminders).then((r) => r.data),
+  // 🔔 Doktor tarafı / reminder oluşturma (aynı kalabilir)
+  create: async (payload) => {
+    const res = await api.post("/api/reminders", payload);
+    return res.data;
+  },
+
+  // 🟢 Hasta ana sayfa → execution report
+  getExecutionReport: async (userId) => {
+    const res = await api.get(
+      `/api/reminder-executions/report/${userId}`
+    );
+    return res.data;
+  },
 };

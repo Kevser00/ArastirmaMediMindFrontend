@@ -10,6 +10,7 @@ import {
   Platform,
   ActivityIndicator,
   Alert,
+  ScrollView,
 } from "react-native";
 
 import NavigationFooter from "../components/NavigationFooter";
@@ -23,11 +24,20 @@ const GirisDr = ({ navigation }) => {
   const [emailTouched, setEmailTouched] = useState(false);
   const [sifreTouched, setSifreTouched] = useState(false);
 
+  // Email doğrulama: Standart e-posta formatı
   const isValidEmail = (val) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(val.trim());
 
+  /**
+   * Şifre doğrulama (Regex Düzeltildi):
+   * - En az 8 karakter
+   * - En az 1 Büyük harf (?=.*[A-Z])
+   * - En az 1 Küçük harf (?=.*[a-z])
+   * - En az 1 Rakam (?=.*[0-9])
+   * - En az 1 Özel karakter (?=.*[^a-zA-Z0-9])
+   */
   const isStrongPassword = (val) =>
-    /^(?=.[a-z])(?=.[A-Z])(?=.*[^a-zA-Z0-9]).{8,}$/.test(val);
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9]).{8,}$/.test(val);
 
   const emailError = useMemo(() => {
     if (!emailTouched) return "";
@@ -40,7 +50,7 @@ const GirisDr = ({ navigation }) => {
     if (!sifreTouched) return "";
     if (!sifre) return "Şifre boş bırakılamaz.";
     if (!isStrongPassword(sifre))
-      return "Şifre en az 8 karakter, 1 büyük, 1 küçük ve 1 özel karakter içermelidir.";
+      return "Şifre en az 8 karakter, 1 büyük, 1 küçük, 1 sayı ve 1 özel karakter içermelidir.";
     return "";
   }, [sifre, sifreTouched]);
 
@@ -52,7 +62,11 @@ const GirisDr = ({ navigation }) => {
   const handleLogin = async () => {
     setEmailTouched(true);
     setSifreTouched(true);
-    if (!isFormValid) return;
+
+    if (!isFormValid) {
+      Alert.alert("Uyarı", "Lütfen bilgileri eksiksiz ve doğru giriniz.");
+      return;
+    }
 
     const result = await loginDoctor(email.trim().toLowerCase(), sifre);
 
@@ -75,68 +89,64 @@ const GirisDr = ({ navigation }) => {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <Image
-        source={require("../../assets/medilogo.png")}
-        style={styles.logo}
-        resizeMode="contain"
-      />
-      <Text style={styles.title}>Doktor Girişi</Text>
-
-      <View style={styles.box}>
-        <TextInput
-          placeholder="E-posta"
-          placeholderTextColor="#888"
-          style={[styles.input, emailTouched && emailError ? styles.inputError : null]}
-          value={email}
-          onChangeText={(t) => {
-            setEmail(t);
-            if (!emailTouched) setEmailTouched(true);
-          }}
-          onBlur={() => setEmailTouched(true)}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          autoCorrect={false}
+      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+        <Image
+          source={require("../../assets/medilogo.png")}
+          style={styles.logo}
+          resizeMode="contain"
         />
-        {emailTouched && emailError ? <Text style={styles.err}>{emailError}</Text> : null}
+        <Text style={styles.title}>Doktor Girişi</Text>
 
-        <TextInput
-          placeholder="Şifre"
-          placeholderTextColor="#888"
-          secureTextEntry
-          style={[styles.input, sifreTouched && sifreError ? styles.inputError : null]}
-          value={sifre}
-          onChangeText={(t) => {
-            setSifre(t);
-            if (!sifreTouched) setSifreTouched(true);
-          }}
-          onBlur={() => setSifreTouched(true)}
-          autoCapitalize="none"
-        />
-        {sifreTouched && sifreError ? <Text style={styles.err}>{sifreError}</Text> : null}
+        <View style={styles.box}>
+          <TextInput
+            placeholder="E-posta"
+            placeholderTextColor="#888"
+            style={[styles.input, emailError ? styles.inputError : null]}
+            value={email}
+            onChangeText={setEmail}
+            onBlur={() => setEmailTouched(true)}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+          {emailError ? <Text style={styles.err}>{emailError}</Text> : null}
 
-        <TouchableOpacity onPress={() => navigation.navigate("kayitDr")} activeOpacity={0.7}>
-          <Text style={styles.link}>Hesabın yok mu? Kaydol</Text>
-        </TouchableOpacity>
+          <TextInput
+            placeholder="Şifre"
+            placeholderTextColor="#888"
+            secureTextEntry
+            style={[styles.input, sifreError ? styles.inputError : null]}
+            value={sifre}
+            onChangeText={setSifre}
+            onBlur={() => setSifreTouched(true)}
+            autoCapitalize="none"
+          />
+          {sifreError ? <Text style={styles.err}>{sifreError}</Text> : null}
 
-        <TouchableOpacity onPress={() => navigation.navigate("sifremiUnuttum")} activeOpacity={0.7}>
-          <Text style={styles.link}>Şifremi unuttum</Text>
-        </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate("kayitDr")} activeOpacity={0.7}>
+            <Text style={styles.link}>Hesabın yok mu? Kaydol</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.button, (!isFormValid || loading) && styles.buttonDisabled]}
-          onPress={handleLogin}
-          disabled={!isFormValid || loading}
-          activeOpacity={0.8}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.buttonText}>Giriş Yap</Text>
-          )}
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity onPress={() => navigation.navigate("sifremiUnuttum")} activeOpacity={0.7}>
+            <Text style={styles.link}>Şifremi unuttum</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.button, (!isFormValid || loading) && styles.buttonDisabled]}
+            onPress={handleLogin}
+            disabled={loading}
+            activeOpacity={0.8}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Giriş Yap</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
 
       <NavigationFooter onBack={() => navigation.navigate("kullaniciSecim")} />
     </KeyboardAvoidingView>
@@ -146,15 +156,37 @@ const GirisDr = ({ navigation }) => {
 export default GirisDr;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#1483C7", alignItems: "center" },
+  container: { flex: 1, backgroundColor: "#1483C7" },
+  scrollContent: { alignItems: "center", paddingBottom: 100 },
   logo: { width: 80, height: 80, marginTop: 60, marginBottom: 20 },
   title: { fontSize: 24, fontWeight: "600", color: "white", marginBottom: 20 },
-  box: { marginTop: 10, width: "80%", backgroundColor: "white", borderRadius: 25, paddingVertical: 30, paddingHorizontal: 20, elevation: 6 },
-  input: { width: "100%", backgroundColor: "#EAEAEA", borderRadius: 10, paddingHorizontal: 15, paddingVertical: 10, fontSize: 16, marginBottom: 8, borderWidth: 1, borderColor: "transparent" },
-  inputError: { borderColor: "#E53935" },
-  err: { color: "#E53935", fontSize: 12, textAlign: "center", marginBottom: 8 },
-  link: { color: "#1642BB", fontSize: 13, marginBottom: 10 },
-  button: { backgroundColor: "#1642BB", paddingVertical: 12, borderRadius: 25, alignItems: "center" },
-  buttonDisabled: { opacity: 0.6 },
+  box: { 
+    width: "85%", 
+    backgroundColor: "white", 
+    borderRadius: 25, 
+    paddingVertical: 30, 
+    paddingHorizontal: 20, 
+    elevation: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+  },
+  input: { 
+    width: "100%", 
+    backgroundColor: "#EAEAEA", 
+    borderRadius: 10, 
+    paddingHorizontal: 15, 
+    paddingVertical: 12, 
+    fontSize: 16, 
+    marginBottom: 5, 
+    borderWidth: 1, 
+    borderColor: "transparent" 
+  },
+  inputError: { borderColor: "#E53935", backgroundColor: "#FDECEA" },
+  err: { color: "#E53935", fontSize: 11, textAlign: "left", marginBottom: 10, paddingHorizontal: 5 },
+  link: { color: "#1642BB", fontSize: 14, marginBottom: 12, fontWeight: "500" },
+  button: { backgroundColor: "#1642BB", paddingVertical: 14, borderRadius: 25, alignItems: "center", marginTop: 10 },
+  buttonDisabled: { backgroundColor: "#A0A0A0" },
   buttonText: { color: "white", fontSize: 17, fontWeight: "600" },
 });
