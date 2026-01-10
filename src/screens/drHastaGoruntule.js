@@ -1,20 +1,76 @@
-//KEVSER
-import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, Image, ScrollView } from 'react-native';
+// KEVSER - DrHastaGoruntule.js
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  Image,
+  ScrollView,
+  ActivityIndicator,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { api } from '../../services/api';
 
 const DrHastaGoruntule = ({ route }) => {
-  // drAnaSayfa'dan gönderilecek: { patient }
-  const patient = route?.params?.patient;
+  // DrAnaSayfa’dan sadece veritabanındaki ID geliyor
+  const patientId = route?.params?.patientId;
 
-  const takipData = useMemo(
-    () => [
-      { ilacAdi: 'Klamoks', saat: '09:00', durum: 'İçti', not: 'Tok karnına' },
-      { ilacAdi: 'B12&Ferritin', saat: '12:00', durum: 'Almadı', not: 'Aç tok farketmez, bir tane içilecek' },
-      { ilacAdi: 'Klamoks', saat: '21:00', durum: 'Bekliyor', not: 'Tok karnına' },
-    ],
-    []
-  );
+  const [patient, setPatient] = useState(null);
+  const [takipData, setTakipData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!patientId) {
+      setError('Hasta ID bulunamadı');
+      setLoading(false);
+      return;
+    }
+
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+
+        // Hasta bilgisi
+        const patientRes = await api.get(
+          `/api/doctors/patients/${patientId}`
+        );
+
+        // Hasta ilaç takip raporu
+        const reportRes = await api.get(
+          `/api/doctors/patients/${patientId}/medication-report`
+        );
+
+        setPatient(patientRes.data);
+        setTakipData(reportRes.data || []);
+      } catch (err) {
+        setError('Hasta bilgileri alınamadı');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [patientId]);
+
+  /* LOADING */
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <ActivityIndicator size="large" color="#1483C7" />
+      </SafeAreaView>
+    );
+  }
+
+  /* ERROR */
+  if (error) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <Text style={styles.errorText}>{error}</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -24,7 +80,6 @@ const DrHastaGoruntule = ({ route }) => {
           <Image
             source={require('../../assets/medilogo.png')}
             style={styles.headerLogo}
-            resizeMode="cover"
           />
         </View>
 
@@ -37,22 +92,29 @@ const DrHastaGoruntule = ({ route }) => {
         {/* HASTA KARTI */}
         <View style={styles.patientCard}>
           <Text style={styles.patientName}>
-            {patient?.name ?? 'Hasta Adı'}
+            {patient?.name} {patient?.surname}
           </Text>
 
           <View style={styles.patientRow}>
             <Ionicons name="call-outline" size={16} color="#EFFFFF" />
             <Text style={styles.patientInfo}>
-              İletişim: {patient?.email ?? 'elif@example.com'}
+              İletişim: {patient?.email || '-'}
+            </Text>
+          </View>
+
+          <View style={styles.patientRow}>
+            <Ionicons name="id-card-outline" size={16} color="#EFFFFF" />
+            <Text style={styles.patientInfo}>
+              Hasta ID: {patient?.id}
             </Text>
           </View>
         </View>
 
-        {/* HASTA TAKİP */}
+        {/* TAKİP TABLOSU */}
         <Text style={styles.sectionTitle}>Hasta Takip</Text>
 
         <View style={styles.table}>
-          {/* Header row */}
+          {/* Header */}
           <View style={[styles.row, styles.rowHeader]}>
             <Text style={[styles.cell, styles.cellHeader]}>İlaç Adı</Text>
             <Text style={[styles.cell, styles.cellHeader]}>Saat</Text>
@@ -60,28 +122,45 @@ const DrHastaGoruntule = ({ route }) => {
             <Text style={[styles.cell, styles.cellHeader]}>Not</Text>
           </View>
 
-          {/* Data rows */}
-          {takipData.map((r, idx) => (
-            <View key={idx} style={[styles.row, idx % 2 === 0 ? styles.rowEven : styles.rowOdd]}>
-              <Text style={styles.cell}>{r.ilacAdi}</Text>
-              <Text style={styles.cell}>{r.saat}</Text>
-              <Text style={styles.cell}>{r.durum}</Text>
-              <Text style={styles.cell}>{r.not}</Text>
-            </View>
-          ))}
+          {/* Data */}
+          {takipData.length === 0 ? (
+            <Text style={styles.emptyText}>Kayıt bulunamadı</Text>
+          ) : (
+            takipData.map((r, idx) => (
+              <View
+                key={idx}
+                style={[
+                  styles.row,
+                  idx % 2 === 0 ? styles.rowEven : styles.rowOdd,
+                ]}
+              >
+                <Text style={styles.cell}>{r.medicineName}</Text>
+                <Text style={styles.cell}>{r.time}</Text>
+                <Text style={styles.cell}>{r.status}</Text>
+                <Text style={styles.cell}>{r.note || '-'}</Text>
+              </View>
+            ))
+          )}
         </View>
-
-        {}
-        {}
       </ScrollView>
     </SafeAreaView>
   );
 };
 
+export default DrHastaGoruntule;
+
+/* STYLES */
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: '#FFFFFF',
+  },
+
+  errorText: {
+    textAlign: 'center',
+    color: '#E53935',
+    marginTop: 20,
+    fontWeight: '700',
   },
 
   header: {
@@ -188,6 +267,12 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '800',
   },
-});
 
-export default DrHastaGoruntule;
+  emptyText: {
+    textAlign: 'center',
+    padding: 12,
+    width: '100%',
+    color: '#444',
+    fontWeight: '600',
+  },
+});

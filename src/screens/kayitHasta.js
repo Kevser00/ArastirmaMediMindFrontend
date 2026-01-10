@@ -29,7 +29,7 @@ const KayitHasta = ({ navigation }) => {
   const [sifreTekrarTouched, setSifreTekrarTouched] = useState(false);
 
   const isValidEmail = (val) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(val.trim());
-  const isStrongPassword = (val) => /^(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9]).{8,}$/.test(val);
+  const isStrongPassword = (val) => /^(?=.[a-z])(?=.[A-Z])(?=.*[^a-zA-Z0-9]).{8,}$/.test(val);
 
   const adError = useMemo(() => {
     if (!adTouched) return "";
@@ -92,6 +92,7 @@ const KayitHasta = ({ navigation }) => {
         name: ad.trim(),
         surname: soyad.trim(),
         email: email.trim().toLowerCase(),
+        registrationNumber: "string", // Backend'in beklediği statik değer eklendi
       });
 
       Alert.alert("Başarılı", "Kayıt oluşturuldu. Giriş yapabilirsiniz.");

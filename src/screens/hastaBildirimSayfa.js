@@ -8,6 +8,7 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import DropDownPicker from "react-native-dropdown-picker";
@@ -15,8 +16,11 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 
 import { medicalDataService } from "../api/medicalDataService";
 import { reminderService } from "../api/reminderService";
+import { useHatirlatma } from "../context/HatirlatmaContext";
 
 const HastaBildirimSayfa = ({ navigation }) => {
+  const { refresh } = useHatirlatma();
+
   const [medicines, setMedicines] = useState([]);
   const [freqs, setFreqs] = useState([]);
 
@@ -30,9 +34,13 @@ const HastaBildirimSayfa = ({ navigation }) => {
   const [frequencyOpen, setFrequencyOpen] = useState(false);
 
   const [dosage, setDosage] = useState("");
+  const [note, setNote] = useState("");
+
   const [startDate, setStartDate] = useState(new Date());
   const [finishDate, setFinishDate] = useState(new Date());
-  const [note, setNote] = useState("");
+
+  const [showStartPicker, setShowStartPicker] = useState(false);
+  const [showFinishPicker, setShowFinishPicker] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -44,23 +52,21 @@ const HastaBildirimSayfa = ({ navigation }) => {
           medicalDataService.getFrequencies(),
         ]);
 
-        // hem camelCase hem PascalCase güvenli
         setMedicines(
           (m || []).map((x) => ({
-            label: x.name ?? x.Name ?? "",
-            value: x.id ?? x.Id ?? null,
+            label: x.name,
+            value: x.id,
           }))
         );
 
         setFreqs(
           (f || []).map((x) => ({
-            label: x.name ?? x.Name ?? "",
-            value: x.id ?? x.Id ?? null,
+            label: x.name,
+            value: x.id,
           }))
         );
-      } catch (e) {
-        console.log("MEDICAL DATA ERR:", e?.response?.data || e.message);
-        Alert.alert("Hata", "İlaç/Sıklık listesi alınamadı. Token var mı kontrol edin.");
+      } catch {
+        Alert.alert("Hata", "İlaç / sıklık listesi alınamadı");
       } finally {
         setLoadingData(false);
       }
@@ -69,41 +75,40 @@ const HastaBildirimSayfa = ({ navigation }) => {
     load();
   }, []);
 
-  const canSubmit = useMemo(() => {
-    return !!medicineId && !!frequencyId && dosage.trim().length > 0;
-  }, [medicineId, frequencyId, dosage]);
+  const canSubmit = useMemo(
+    () => !!medicineId && !!frequencyId && dosage.trim().length > 0,
+    [medicineId, frequencyId, dosage]
+  );
 
   const hatirlatmaEkle = async () => {
     if (!canSubmit) {
-      Alert.alert("Uyarı", "İlaç, sıklık ve doz alanlarını doldurun.");
+      Alert.alert("Uyarı", "Zorunlu alanları doldurun");
       return;
     }
 
-    // küçük koruma: bitiş başlangıçtan önce olmasın
     if (finishDate < startDate) {
-      Alert.alert("Uyarı", "Bitiş tarihi başlangıç tarihinden önce olamaz.");
+      Alert.alert("Uyarı", "Bitiş tarihi başlangıçtan önce olamaz");
       return;
     }
 
     try {
       setSubmitting(true);
 
-      const payload = {
+      await reminderService.create({
         dosage: dosage.trim(),
-        startDate,          // axios ISO stringe çevirir
+        startDate,
         finishDate,
         medicineId,
         frequencyOfUseId: frequencyId,
         note: note?.trim() || null,
-      };
+      });
 
-      await reminderService.create(payload);
+      await refresh(); // 🔥 ana sayfa anında güncellenir
 
-      Alert.alert("Başarılı", "Hatırlatma eklendi.");
+      Alert.alert("Başarılı", "Hatırlatma eklendi");
       navigation.goBack();
-    } catch (e) {
-      console.log("REMINDER CREATE ERR:", e?.response?.data || e.message);
-      Alert.alert("Hata", "Hatırlatma eklenemedi. Token/Authorize kontrol edin.");
+    } catch {
+      Alert.alert("Hata", "Hatırlatma eklenemedi");
     } finally {
       setSubmitting(false);
     }
@@ -121,22 +126,19 @@ const HastaBildirimSayfa = ({ navigation }) => {
             value={medicineId}
             items={medicines}
             setOpen={setMedicineOpen}
-            setValue={(cb) => setMedicineId(cb)}
-            placeholder={loadingData ? "Yükleniyor..." : "İlaç seçiniz"}
+            setValue={setMedicineId}
             disabled={disabled}
-            containerStyle={{ marginBottom: 10, zIndex: 3000 }}
             style={styles.dropdown}
-            listMode="SCROLLVIEW"
+            zIndex={3000}
           />
 
           <Text style={styles.label}>Doz</Text>
           <TextInput
             style={styles.inputBox}
-            placeholder="Örn: 1 tablet"
-            placeholderTextColor="#555"
             value={dosage}
             onChangeText={setDosage}
             editable={!disabled}
+            placeholder="Örn: 1 tablet"
           />
 
           <Text style={styles.label}>Tekrar Sıklığı</Text>
@@ -145,47 +147,63 @@ const HastaBildirimSayfa = ({ navigation }) => {
             value={frequencyId}
             items={freqs}
             setOpen={setFrequencyOpen}
-            setValue={(cb) => setFrequencyId(cb)}
-            placeholder={loadingData ? "Yükleniyor..." : "Sıklık seçiniz"}
+            setValue={setFrequencyId}
             disabled={disabled}
-            containerStyle={{ marginBottom: 10, zIndex: 2000 }}
             style={styles.dropdown}
-            listMode="SCROLLVIEW"
+            zIndex={2000}
           />
 
-          <Text style={styles.label}>Başlangıç ve Bitiş Tarihi</Text>
+          <Text style={styles.label}>Başlangıç - Bitiş</Text>
           <View style={styles.dateRow}>
-            <View style={styles.dateBox}>
-              <Text style={styles.dateLabel}>Başlangıç</Text>
-              <DateTimePicker
-                value={startDate}
-                mode="date"
-                display="default"
-                onChange={(e, d) => d && setStartDate(d)}
-                disabled={disabled}
-              />
-            </View>
+            <TouchableOpacity
+              style={styles.dateBox}
+              onPress={() => setShowStartPicker(true)}
+              disabled={disabled}
+            >
+              <Text>Başlangıç</Text>
+              <Text>{startDate.toLocaleDateString("tr-TR")}</Text>
+            </TouchableOpacity>
 
-            <View style={styles.dateBox}>
-              <Text style={styles.dateLabel}>Bitiş</Text>
-              <DateTimePicker
-                value={finishDate}
-                mode="date"
-                display="default"
-                onChange={(e, d) => d && setFinishDate(d)}
-                disabled={disabled}
-              />
-            </View>
+            <TouchableOpacity
+              style={styles.dateBox}
+              onPress={() => setShowFinishPicker(true)}
+              disabled={disabled}
+            >
+              <Text>Bitiş</Text>
+              <Text>{finishDate.toLocaleDateString("tr-TR")}</Text>
+            </TouchableOpacity>
           </View>
+
+          {showStartPicker && (
+            <DateTimePicker
+              value={startDate}
+              mode="date"
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              onChange={(e, d) => {
+                setShowStartPicker(Platform.OS === "ios");
+                if (d) setStartDate(d);
+              }}
+            />
+          )}
+
+          {showFinishPicker && (
+            <DateTimePicker
+              value={finishDate}
+              mode="date"
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              onChange={(e, d) => {
+                setShowFinishPicker(Platform.OS === "ios");
+                if (d) setFinishDate(d);
+              }}
+            />
+          )}
 
           <Text style={styles.label}>Not</Text>
           <TextInput
             style={styles.inputBox}
-            placeholder="Örn: Yemekten sonra alın"
-            placeholderTextColor="#555"
             value={note}
             onChangeText={setNote}
-            editable={!disabled}
+            placeholder="Örn: Yemekten sonra"
           />
 
           <TouchableOpacity
@@ -207,6 +225,7 @@ const HastaBildirimSayfa = ({ navigation }) => {
 
 export default HastaBildirimSayfa;
 
+/* STYLES */
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "#fff" },
   container: { paddingBottom: 40 },
@@ -218,38 +237,30 @@ const styles = StyleSheet.create({
   },
   label: {
     color: "#fff",
-    marginBottom: 6,
     marginTop: 14,
-    fontWeight: "600",
+    fontWeight: "700",
   },
   dropdown: {
     backgroundColor: "#BDBDBD",
     borderRadius: 10,
+    marginTop: 6,
   },
   inputBox: {
-    width: "100%",
     backgroundColor: "#EAEAEA",
     borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    fontSize: 14,
-    marginBottom: 10,
+    padding: 10,
+    marginTop: 6,
   },
   dateRow: {
     flexDirection: "row",
     justifyContent: "space-between",
+    marginTop: 8,
   },
   dateBox: {
-    backgroundColor: "#BDBDBD",
-    borderRadius: 10,
-    padding: 6,
     width: "48%",
-    marginBottom: 10,
-  },
-  dateLabel: {
-    fontSize: 12,
-    color: "#fff",
-    marginBottom: 2,
+    backgroundColor: "#BDBDBD",
+    padding: 10,
+    borderRadius: 10,
   },
   button: {
     backgroundColor: "#2C4CCF",

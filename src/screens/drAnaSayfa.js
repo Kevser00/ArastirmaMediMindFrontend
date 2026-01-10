@@ -11,19 +11,20 @@ import {
   FlatList,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { api } from '../../services/api'; // axios instance
 
-// 🔹 MOCK – sonra API ile değişecek
-const fetchPatientById = async (id) => {
-  await new Promise((r) => setTimeout(r, 500));
+// 🔹 DB'deki USER ID ile hasta getir
+const fetchPatientById = async (userId) => {
+  const res = await api.get(`/api/reminderselectbyId/${userId}`);
 
-  if (id.toUpperCase() !== 'HST-001') return null;
-
+  // Backend Reminder list dönüyor → ekrana uygun hale getiriyoruz
   return {
-    id: 'HST-001',
-    name: 'Elif Seçkin',
-    activeDrugCount: 3,
-    lastDrug: '09:00 - İçti',
-    alertText: '1 ilaç atlandı',
+    id: userId.toString(),
+    name: res.data?.[0]?.userName ?? 'Hasta',
+    activeDrugCount: res.data?.length ?? 0,
+    lastDrug: res.data?.[0]?.time ?? '-',
+    alertText: 'Takip ediliyor',
+    reminders: res.data,
   };
 };
 
@@ -44,16 +45,21 @@ const DrAnaSayfa = ({ navigation, route }) => {
       return;
     }
 
-    const t = setTimeout(async () => {
-      setLoading(true);
-      const res = await fetchPatientById(q);
-      setLoading(false);
+    if (isNaN(q)) {
+      setError('Hasta ID sadece sayı olmalıdır.');
+      return;
+    }
 
-      if (!res) {
+    const t = setTimeout(async () => {
+      try {
+        setLoading(true);
+        const res = await fetchPatientById(q);
+        setPatient(res);
+      } catch (err) {
         setPatient(null);
         setError('Bu ID ile hasta bulunamadı.');
-      } else {
-        setPatient(res);
+      } finally {
+        setLoading(false);
       }
     }, 400);
 
@@ -65,14 +71,17 @@ const DrAnaSayfa = ({ navigation, route }) => {
   const renderItem = ({ item }) => (
     <View style={styles.card}>
       <Text style={styles.cardName}>{item.name}</Text>
-
       <Text style={styles.cardText}>🧪 {item.activeDrugCount} aktif ilaç</Text>
       <Text style={styles.cardText}>💊 Son ilaç: {item.lastDrug}</Text>
       <Text style={styles.cardText}>⚠️ {item.alertText}</Text>
 
       <TouchableOpacity
         style={styles.detailBtn}
-        onPress={() => navigation.navigate('drHastaGoruntule', { patient: item })}
+        onPress={() =>
+          navigation.navigate('drHastaGoruntule', {
+            patient: item.id,
+          })
+        }
       >
         <Text style={styles.detailBtnText}>Detay Gör</Text>
       </TouchableOpacity>
@@ -92,19 +101,18 @@ const DrAnaSayfa = ({ navigation, route }) => {
             Merhaba {doctor?.name ?? 'Doktor'}
           </Text>
         </View>
-
       </View>
 
       {/* SEARCH */}
       <View style={styles.searchBox}>
         <Ionicons name="search-outline" size={20} color="#666" />
         <TextInput
-          placeholder="Hasta ID No giriniz"
+          placeholder="Hasta ID (DB ID)"
           placeholderTextColor="#777"
           style={styles.searchInput}
           value={query}
           onChangeText={setQuery}
-          autoCapitalize="characters"
+          keyboardType="numeric"
         />
         {loading && <ActivityIndicator size="small" color="#1483C7" />}
       </View>
@@ -129,13 +137,14 @@ const DrAnaSayfa = ({ navigation, route }) => {
   );
 };
 
+export default DrAnaSayfa;
+
+/* 🎨 STYLES */
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
-
-  /* HEADER */
   header: {
     backgroundColor: '#1483C7',
     paddingTop: 20,
@@ -145,29 +154,23 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 28,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
   },
-
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
   },
-
   headerLogo: {
     width: 44,
     height: 44,
     borderRadius: 20,
     backgroundColor: '#fff',
   },
-
   headerTitle: {
     color: '#fff',
     fontSize: 18,
     fontWeight: '700',
   },
-
-  /* SEARCH */
   searchBox: {
     marginTop: 16,
     marginHorizontal: 16,
@@ -179,56 +182,46 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
   },
-
   searchInput: {
     flex: 1,
     fontSize: 15,
     color: '#111',
   },
-
-  /* CONTENT */
   content: {
     paddingHorizontal: 16,
     paddingTop: 20,
     paddingBottom: 120,
   },
-
   hint: {
     textAlign: 'center',
     marginTop: 40,
     fontSize: 16,
     color: '#888',
   },
-
   error: {
     marginTop: 10,
     textAlign: 'center',
     color: '#E53935',
     fontSize: 13,
   },
-
-  /* CARD */
   card: {
     width: 190,
     backgroundColor: '#19B5D8',
     borderRadius: 22,
     padding: 14,
   },
-
   cardName: {
     color: '#fff',
     fontSize: 18,
     fontWeight: '800',
     marginBottom: 10,
   },
-
   cardText: {
     color: '#EFFFFF',
     fontSize: 13,
     marginBottom: 6,
     fontWeight: '600',
   },
-
   detailBtn: {
     marginTop: 10,
     backgroundColor: '#fff',
@@ -237,12 +230,9 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignSelf: 'flex-start',
   },
-
   detailBtnText: {
     color: '#1483C7',
     fontWeight: '800',
     fontSize: 12,
   },
 });
-
-export default DrAnaSayfa;
