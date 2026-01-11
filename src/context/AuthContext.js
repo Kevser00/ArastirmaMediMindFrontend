@@ -44,38 +44,53 @@ export const AuthProvider = ({ children }) => {
   };
 
   const loginUser = async (email, password) => {
-    setLoading(true);
-    try {
-      const res = await authService.loginUser(email, password);
-      const u = { type: "user", userId: res.userId, email };
-      setHasta(u);
-      setDoctor(null);
-      await AsyncStorage.setItem(USER_KEY, JSON.stringify(u));
-      return true;
-    } catch (e) {
-      console.log("LOGIN USER ERR:", e?.response?.data || e.message);
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  };
+  setLoading(true);
+  try {
+    const res = await authService.loginUser(email, password);
+    // API'den dönen res.data içinde isim ve soyisim olduğunu varsayıyoruz
+    const u = { 
+      type: "user", 
+      userId: res.userId, 
+      email,
+      ad: res.data?.ad || res.user?.ad, // Burayı ekledik
+      soyad: res.data?.soyad || res.user?.soyad // Burayı ekledik
+    };
+    setHasta(u);
+    await AsyncStorage.setItem(USER_KEY, JSON.stringify(u));
+    return true;
+  } catch (e) {
+    return false;
+  } finally {
+    setLoading(false);
+  }
+};
 
-  const loginDoctor = async (registrationNumber, password) => {
-    setLoading(true);
-    try {
-      const res = await authService.loginDoctor(registrationNumber, password);
-      const d = { type: "doctor", registrationNumber };
-      setDoctor(d);
-      setHasta(null);
-      await AsyncStorage.setItem(USER_KEY, JSON.stringify(d));
-      return { ok: true, data: res };
-    } catch (e) {
-      console.log("LOGIN DOCTOR ERR:", e?.response?.data || e.message);
-      return { ok: false };
-    } finally {
-      setLoading(false);
-    }
-  };
+  // AuthContext.js içindeki loginDoctor'u bu şekilde güncelle:
+const loginDoctor = async (registrationNumber, password) => {
+  setLoading(true);
+  try {
+    const res = await authService.loginDoctor(registrationNumber, password);
+    
+    // BACKEND'DEN GELEN VERİYE GÖRE BURAYI DÜZENLE:
+    // res.data.user veya res.user içinden isim/soyisim geliyordur.
+    const d = { 
+      type: "doctor", 
+      registrationNumber,
+      name: res.data?.name || res.user?.name, 
+      surname: res.data?.surname || res.user?.surname,
+      email: res.data?.email || res.user?.email 
+    };
+
+    setDoctor(d);
+    setHasta(null);
+    await AsyncStorage.setItem(USER_KEY, JSON.stringify(d));
+    return { ok: true, data: res };
+  } catch (e) {
+    return { ok: false };
+  } finally {
+    setLoading(false);
+  }
+};
 
   const logout = async () => {
     await tokenStorage.clear();

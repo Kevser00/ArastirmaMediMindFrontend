@@ -11,50 +11,43 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '../api/api';
+import { useAuth } from '../context/AuthContext'; // Context'i import ettik
 
 const DrBilgiSayfa = ({ navigation }) => {
+  // Context'teki doctor state'ini çekiyoruz
+  const { doctor, logout } = useAuth(); 
+  
   const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchDoctor = async () => {
       try {
         setLoading(true);
-
-        // 🔗 Backend endpoint (örnek)
+        // Arka planda verileri tazele
         const res = await api.get('/api/doctors/me');
-
         setProfile(res.data);
       } catch (e) {
-        setError('Doktor bilgileri alınamadı');
+        console.log("Profil güncellenirken hata oluştu, mevcut veriler gösteriliyor.");
       } finally {
         setLoading(false);
       }
     };
-
     fetchDoctor();
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await logout();
     navigation.replace('kullaniciSecim');
   };
 
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.safe}>
-        <ActivityIndicator size="large" color="#1483C7" />
-      </SafeAreaView>
-    );
-  }
-
-  if (error) {
-    return (
-      <SafeAreaView style={styles.safe}>
-        <Text style={styles.error}>{error}</Text>
-      </SafeAreaView>
-    );
-  }
+  // ANLIK VERİ ÖNCELİĞİ:
+  // 1. profile (API'den taze gelen) 
+  // 2. doctor (Kayıt/Giriş anında Context'e yazılan)
+  const name = profile?.name || doctor?.name || "Yükleniyor...";
+  const surname = profile?.surname || doctor?.surname || "";
+  const regNo = profile?.registrationNumber || doctor?.registrationNumber || "-";
+  const email = profile?.email || doctor?.email || "-";
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -66,144 +59,75 @@ const DrBilgiSayfa = ({ navigation }) => {
             style={styles.headerLogo}
           />
           <View>
-            <Text style={styles.headerHi}>Profil Bilgilerim</Text>
-            <Text style={styles.headerName}>
-              {profile?.name} {profile?.surname}
-            </Text>
+            <Text style={styles.headerHi}>Hoş Geldiniz,</Text>
+            {/* Burası artık anlık olarak dolacak */}
+            <Text style={styles.headerName}>{name} {surname}</Text>
           </View>
         </View>
       </View>
 
-      {/* CONTENT */}
+      {/* BİLGİ KARTI */}
       <View style={styles.content}>
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Doktor Bilgileri</Text>
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardTitle}>Kayıt Bilgileriniz</Text>
+            {loading && <ActivityIndicator size="small" color="#1483C7" />}
+          </View>
 
-          <InfoRow
-            label="Ad Soyad"
-            value={`${profile?.name} ${profile?.surname}`}
-          />
+          <InfoRow label="Ad Soyad" value={`${name} ${surname}`} />
           <Divider />
 
-          <InfoRow label="Sicil No" value={profile?.registiration_number} />
+          <InfoRow label="Sicil No" value={regNo} />
+          <Divider />
+
+          <InfoRow label="E-posta" value={email} />
         </View>
       </View>
 
       {/* ÇIKIŞ */}
       <View style={styles.bottomArea}>
         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={16} color="#fff" />
-          <Text style={styles.logoutBtnText}>Çıkış Yap</Text>
+          <Ionicons name="log-out-outline" size={20} color="#fff" />
+          <Text style={styles.logoutBtnText}>Güvenli Çıkış</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
 };
 
-export default DrBilgiSayfa;
-
-/* Küçük componentler */
 const InfoRow = ({ label, value }) => (
   <View style={styles.row}>
     <Text style={styles.rowLabel}>{label}</Text>
-    <Text style={styles.rowValue}>{value || '-'}</Text>
+    <Text style={styles.rowValue}>{value}</Text>
   </View>
 );
 
 const Divider = () => <View style={styles.divider} />;
 
-/* STYLES */
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: '#F6F8FB',
-  },
+  safe: { flex: 1, backgroundColor: '#F6F8FB' },
   header: {
     backgroundColor: '#1483C7',
-    paddingVertical: 20,
-    paddingHorizontal: 16,
-    borderBottomLeftRadius: 28,
-    borderBottomRightRadius: 28,
+    paddingVertical: 35,
+    paddingHorizontal: 20,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
   },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  headerLogo: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#fff',
-  },
-  headerHi: {
-    color: '#EAF6FF',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  headerName: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '800',
-  },
-  content: {
-    paddingHorizontal: 16,
-    paddingTop: 18,
-  },
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#E8EEF6',
-  },
-  cardTitle: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: '#1483C7',
-    marginBottom: 12,
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 10,
-  },
-  rowLabel: {
-    color: '#6B7280',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  rowValue: {
-    color: '#111827',
-    fontSize: 13,
-    fontWeight: '800',
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#EEF2F7',
-  },
-  bottomArea: {
-    position: 'absolute',
-    left: 18,
-    bottom: 110,
-  },
-  logoutBtn: {
-    backgroundColor: '#E53935',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  logoutBtnText: {
-    color: '#fff',
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  error: {
-    textAlign: 'center',
-    color: 'red',
-    marginTop: 40,
-  },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 15 },
+  headerLogo: { width: 55, height: 55, borderRadius: 27.5, backgroundColor: '#fff', padding: 5 },
+  headerHi: { color: '#EAF6FF', fontSize: 14, fontWeight: '600' },
+  headerName: { color: '#FFFFFF', fontSize: 22, fontWeight: 'bold' },
+  content: { padding: 20 },
+  card: { backgroundColor: '#FFFFFF', borderRadius: 20, padding: 20, elevation: 3 },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15 },
+  cardTitle: { fontSize: 15, fontWeight: '800', color: '#1483C7' },
+  row: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 14 },
+  rowLabel: { color: '#6B7280', fontSize: 14, fontWeight: '600' },
+  rowValue: { color: '#111827', fontSize: 14, fontWeight: '700' },
+  divider: { height: 1, backgroundColor: '#F3F4F6' },
+  bottomArea: { position: 'absolute', bottom: 40, width: '100%', alignItems: 'center' },
+  logoutBtn: { backgroundColor: '#E53935', borderRadius: 15, paddingHorizontal: 30, paddingVertical: 15, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  logoutBtnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
 });
+
+export default DrBilgiSayfa;

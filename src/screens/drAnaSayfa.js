@@ -20,7 +20,7 @@ const fetchPatientById = async (userId) => {
   // Backend Reminder list dönüyor → ekrana uygun hale getiriyoruz
   return {
     id: userId.toString(),
-    name: res.data?.[0]?.userName ?? 'Hasta',
+    name: res.data?.[0]?.userName ?? 'Aslı Çiçek',
     activeDrugCount: res.data?.length ?? 0,
     lastDrug: res.data?.[0]?.time ?? '-',
     alertText: 'Takip ediliyor',

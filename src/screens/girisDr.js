@@ -27,7 +27,7 @@ const GirisDr = ({ navigation }) => {
     /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(val.trim());
 
   const isStrongPassword = (val) =>
-    /^(?=.[a-z])(?=.[A-Z])(?=.*[^a-zA-Z0-9]).{8,}$/.test(val);
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/.test(val);
 
   const emailError = useMemo(() => {
     if (!emailTouched) return "";
