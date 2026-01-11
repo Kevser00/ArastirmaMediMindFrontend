@@ -151,6 +151,7 @@ const HastaBildirimSayfa = ({ navigation }) => {
             disabled={disabled}
             style={styles.dropdown}
             zIndex={2000}
+            listMode="SCROLLVIEW"
           />
 
           <Text style={styles.label}>Başlangıç - Bitiş</Text>
@@ -244,6 +245,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#BDBDBD",
     borderRadius: 10,
     marginTop: 6,
+    listMode:"SCROLLVIEW"
   },
   inputBox: {
     backgroundColor: "#EAEAEA",

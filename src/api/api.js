@@ -7,11 +7,10 @@ const PORT = 5127;
 // ANDROID EMULATOR -> 10.0.2.2
 // IOS SIMULATOR -> localhost
 
-const BASE_URL =
-  Platform.OS === "ios"
-    ? ⁠ http://localhost:${PORT} ⁠
-    : ⁠ http://10.0.2.2:${PORT} ⁠;
-
+const BASE_URL = `http://10.0.2.2:${PORT}`;
+  //Platform.OS === "ios"
+  //  ? `http://localhost:${PORT}`
+    //: `http://10.0.2.2:${PORT}`;
 
 
 
@@ -23,7 +22,7 @@ export const api = axios.create({
 
 api.interceptors.request.use(async (config) => {
   const token = await tokenStorage.getAccessToken();
-  if (token) config.headers.Authorization = ⁠ Bearer ${token} ⁠;
+  if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 

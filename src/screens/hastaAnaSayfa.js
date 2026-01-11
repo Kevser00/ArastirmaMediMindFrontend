@@ -6,7 +6,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import HatirlatmaKart from "../components/HatirlatmaKart";
 import { useHatirlatma } from "../context/HatirlatmaContext";
 import { medicalDataService } from "../api/medicalDataService";
-import { reminderExecutionService } from "../api/reminderExecutionService";
+import { reminderService } from "../api/reminderService";
 
 function HastaAnaSayfa() {
   const { hatirlatmalar, loading, refresh } = useHatirlatma();

@@ -11,7 +11,7 @@ import {
   FlatList,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { api } from '../../services/api'; // axios instance
+import { api } from '../api/api'; // axios instance
 
 // 🔹 DB'deki USER ID ile hasta getir
 const fetchPatientById = async (userId) => {
